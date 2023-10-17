@@ -9,25 +9,38 @@ import (
 	"strings"
 )
 
+type Context struct {
+	Level int
+	Frame int
+	Slot  int
+}
+
 type Client struct {
+	Host       string
+	Port       string
+	JumpClient *Client
 	SSHConfig  *ssh.ClientConfig
 	Connection *ssh.Client
 	Session    *ssh.Session
-	JumpClient *ssh.Client
-	Host       string
-	Port       string
 	Stdout     io.Reader
 	Stdin      io.WriteCloser
-	Level      int
+	Context    Context
 }
 
 func NewClient(user, password, host, port string) *Client {
-	sshConfig := createSSHClientConfig(user, password)
-
+	sshConfig := &ssh.ClientConfig{
+		User:            user,
+		Auth:            []ssh.AuthMethod{ssh.Password(password)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Config: ssh.Config{
+			KeyExchanges: []string{"diffie-hellman-group-exchange-sha256"},
+		},
+	}
 	return &Client{
 		SSHConfig: sshConfig,
 		Host:      host,
 		Port:      port,
+		Context:   Context{},
 	}
 }
 
@@ -36,44 +49,56 @@ func (c *Client) Connect() error {
 	if err != nil {
 		return err
 	}
-	return c.createSession(conn)
+	c.Connection = conn
+
+	err = c.createSession()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (c *Client) ConnectThroughJumpHost(jumpHost, jumpUser, jumpPassword string) error {
-	config := createSSHClientConfig(jumpUser, jumpPassword)
+func (c *Client) ConnectThroughJumpHost(user, password, host, port string) error {
+	var err error
 
-	jumpClient, err := ssh.Dial("tcp", jumpHost+":22", config)
+	c.JumpClient = NewClient(user, password, host, port)
+	c.JumpClient.Connection, err = ssh.Dial("tcp", c.JumpClient.Host+":"+c.JumpClient.Port, c.JumpClient.SSHConfig)
 	if err != nil {
 		return err
 	}
 
-	targetConn, err := jumpClient.Dial("tcp", c.Host+":22")
+	conn, err := c.JumpClient.Connection.Dial("tcp", c.Host+":"+c.Port)
 	if err != nil {
 		return err
 	}
 
-	targetSSH, targetSSHChans, targetSSHReqs, err := ssh.NewClientConn(targetConn, c.Host, c.SSHConfig)
+	connSSH, conSSHChan, connSSHReq, err := ssh.NewClientConn(conn, c.Host, c.SSHConfig)
 	if err != nil {
 		return err
 	}
 
-	targetClient := ssh.NewClient(targetSSH, targetSSHChans, targetSSHReqs)
-	err = c.createSession(targetClient)
+	c.Connection = ssh.NewClient(connSSH, conSSHChan, connSSHReq)
+
+	err = c.createSession()
 	if err != nil {
 		return err
 	}
 
-	c.JumpClient = jumpClient
 	return nil
 }
 
 func (c *Client) Close() error {
-	err1 := c.Connection.Close()
-	err2 := c.JumpClient.Close()
-	if err1 != nil {
-		return err1
+	err := c.Connection.Close()
+
+	if err != nil {
+		return err
 	}
-	return err2
+
+	if c.JumpClient != nil {
+		return c.JumpClient.Close()
+	}
+
+	return err
 }
 
 func (c *Client) ReadUntilPrompt(prompt string) (string, error) {
@@ -136,20 +161,23 @@ func (c *Client) Wait() error {
 	return nil
 }
 
-func (c *Client) createSession(conn *ssh.Client) error {
-	session, err := conn.NewSession()
+func (c *Client) createSession() error {
+	session, err := c.Connection.NewSession()
 	if err != nil {
 		return err
 	}
+
 	stdout, err := session.StdoutPipe()
 	if err != nil {
 		return err
 	}
+
 	c.Stdout = stdout
 	stdin, err := session.StdinPipe()
 	if err != nil {
 		return err
 	}
+
 	c.Stdin = stdin
 	err = session.Shell()
 	if err != nil {
@@ -162,17 +190,5 @@ func (c *Client) createSession(conn *ssh.Client) error {
 	}
 
 	c.Session = session
-	c.Connection = conn
 	return nil
-}
-
-func createSSHClientConfig(user, password string) *ssh.ClientConfig {
-	return &ssh.ClientConfig{
-		User:            user,
-		Auth:            []ssh.AuthMethod{ssh.Password(password)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Config: ssh.Config{
-			KeyExchanges: []string{"diffie-hellman-group-exchange-sha256"},
-		},
-	}
 }
