@@ -208,8 +208,9 @@ func (c *CommandExecutor) AddOnt(port string, serialNumber string, description s
 	}
 	fmt.Print(output)
 
-	if strings.Contains(output, "Failure: SN already exists") {
-		return "", fmt.Errorf("serial number already exists")
+	err = c.checkOutputFailure(output)
+	if err != nil {
+		return "", err
 	}
 
 	re := regexp.MustCompile(`ONTID :(\d+)`)
@@ -250,8 +251,9 @@ func (c *CommandExecutor) AddNativeVlan(port string, ontID string) error {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	if strings.Contains(output, "Failure: Make configuration repeatedly") {
-		return fmt.Errorf("make configuration repeatedly")
+	err = c.checkOutputFailure(output)
+	if err != nil {
+		return err
 	}
 
 	fmt.Print(output)
@@ -268,8 +270,9 @@ func (c *CommandExecutor) AddServicePort(vlan string, frame string, slot string,
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	if strings.Contains(output, "Failure: VLAN does not exist") {
-		return fmt.Errorf("VLAN does not exist")
+	err = c.checkOutputFailure(output)
+	if err != nil {
+		return err
 	}
 
 	fmt.Print(output)
@@ -286,8 +289,9 @@ func (c *CommandExecutor) GetOntData(frame string, slot string, port string, ont
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
 
-	if strings.Contains(output, "Failure") || strings.Contains(output, "Error") {
-		return nil, fmt.Errorf("could not get service port")
+	err = c.checkOutputFailure(output)
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Print(output)
@@ -328,10 +332,23 @@ func (c *CommandExecutor) UndoServicePort(id string) error {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	if strings.Contains(output, "Failure") {
-		return fmt.Errorf("could not undo service port")
+	err = c.checkOutputFailure(output)
+	if err != nil {
+		return err
 	}
 
 	fmt.Print(output)
+	return nil
+}
+
+func (c *CommandExecutor) checkOutputFailure(output string) error {
+	if strings.Contains(output, "Failure:") {
+		lines := strings.Split(output, "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "Failure:") {
+				return fmt.Errorf(line)
+			}
+		}
+	}
 	return nil
 }
