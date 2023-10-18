@@ -2,59 +2,150 @@ package sshclient
 
 import (
 	"fmt"
+	"io"
 	"regexp"
 	"strings"
 )
 
-func (c *Client) Enable() error {
-	if c.Context.Level != 0 {
+type ExecutorContext struct {
+	Level int
+	Frame string
+	Slot  string
+}
+
+type CommandExecutor struct {
+	Stdout          io.Reader
+	Stdin           io.WriteCloser
+	ExecutorContext ExecutorContext
+}
+
+func NewCommandExecutor(connManager *ConnectionManager) (*CommandExecutor, error) {
+	stdout, err := connManager.Session.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	stdin, err := connManager.Session.StdinPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	err = connManager.Session.Shell()
+	if err != nil {
+		return nil, err
+	}
+
+	commExecutor := &CommandExecutor{
+		Stdout:          stdout,
+		Stdin:           stdin,
+		ExecutorContext: ExecutorContext{},
+	}
+
+	_, err = commExecutor.ReadUntilPrompt("MA5683T>")
+	if err != nil {
+		return nil, err
+	}
+
+	return commExecutor, nil
+}
+
+func (c *CommandExecutor) RunCommand(command, prompt string) (string, error) {
+	_, err := c.Stdin.Write([]byte(command + "\n"))
+	if err != nil {
+		return "", err
+	}
+
+	output, err := c.ReadUntilPrompt(prompt)
+	if err != nil {
+		return "", err
+	}
+
+	return output, nil
+}
+
+func (c *CommandExecutor) ReadUntilPrompt(prompt string) (string, error) {
+	output := make([]byte, 4096)
+	var accumulatedOutput []byte
+	for {
+		n, err := c.Stdout.Read(output)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", fmt.Errorf("failed to read output: %v", err)
+		}
+
+		buffer := output[:n]
+		text := string(buffer)
+
+		if strings.Contains(text, "---- More ( Press 'Q' to break ) ----") {
+			_, err := c.Stdin.Write([]byte("\n"))
+			if err != nil {
+				return "", err
+			}
+		}
+
+		text = strings.Replace(text, "---- More ( Press 'Q' to break ) ----", "", -1)
+		re := regexp.MustCompile(`.\[37D`)
+		text = re.ReplaceAllString(text, "")
+
+		accumulatedOutput = append(accumulatedOutput, []byte(text)...)
+		if strings.Contains(string(accumulatedOutput), prompt) {
+			break
+		}
+	}
+	return string(accumulatedOutput), nil
+}
+
+func (c *CommandExecutor) Enable() error {
+	if c.ExecutorContext.Level != 0 {
 		return fmt.Errorf("not in root mode")
 	}
 	output, err := c.RunCommand("enable", "MA5683T#")
 	if err != nil {
 		return fmt.Errorf("failed to run command enable: %v", err)
 	}
-	c.Context.Level = 1
+	c.ExecutorContext.Level = 1
 	fmt.Print(output)
 	return nil
 }
 
-func (c *Client) Config() error {
-	if c.Context.Level != 1 {
+func (c *CommandExecutor) Config() error {
+	if c.ExecutorContext.Level != 1 {
 		return fmt.Errorf("not in enable mode")
 	}
 	output, err := c.RunCommand("config", "MA5683T(config)#")
 	if err != nil {
 		return fmt.Errorf("failed to run command config: %v", err)
 	}
-	c.Context.Level = 2
+	c.ExecutorContext.Level = 2
 	fmt.Print(output)
 	return nil
 }
 
-func (c *Client) Quit(exit bool) error {
+func (c *CommandExecutor) Quit(exit bool) error {
 	var output string
 	var err error
 
-	if c.Context.Level >= 3 {
+	if c.ExecutorContext.Level >= 3 {
 		output, err = c.RunCommand("quit", "MA5683T(config)#")
 		if err != nil {
 			return fmt.Errorf("failed to run command: %v", err)
 		}
 		fmt.Print(output)
-		c.Context.Level = 2
+		c.ExecutorContext.Level = 2
 		if !exit {
 			return nil
 		}
 	}
 
-	if c.Context.Level >= 2 {
+	if c.ExecutorContext.Level >= 2 {
 		output, err = c.RunCommand("quit", "MA5683T#")
 		if err != nil {
 			return fmt.Errorf("failed to run command: %v", err)
 		}
 		fmt.Print(output)
-		c.Context.Level = 1
+		c.ExecutorContext.Level = 1
 		if !exit {
 			return nil
 		}
@@ -74,8 +165,8 @@ func (c *Client) Quit(exit bool) error {
 	return nil
 }
 
-func (c *Client) DisplayUnmanagedOnt() ([]UnmanagedONT, error) {
-	if c.Context.Level != 2 {
+func (c *CommandExecutor) DisplayUnmanagedOnt() ([]UnmanagedONT, error) {
+	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
 	output, err := c.RunCommand("display ont autofind all", "MA5683T(config)#")
@@ -86,23 +177,23 @@ func (c *Client) DisplayUnmanagedOnt() ([]UnmanagedONT, error) {
 	return ParseUnmanagedONT(output)
 }
 
-func (c *Client) InterfaceGPON(frame string, slot string) error {
-	if c.Context.Level != 2 {
+func (c *CommandExecutor) InterfaceGPON(frame string, slot string) error {
+	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")
 	}
 	output, err := c.RunCommand(fmt.Sprintf("interface gpon %s/%s", frame, slot), fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", frame, slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
-	c.Context.Level = 3
-	c.Context.Frame = frame
-	c.Context.Slot = slot
+	c.ExecutorContext.Level = 3
+	c.ExecutorContext.Frame = frame
+	c.ExecutorContext.Slot = slot
 	fmt.Print(output)
 	return nil
 }
 
-func (c *Client) AddOnt(port string, serialNumber string, description string) (string, error) {
-	if c.Context.Level != 3 {
+func (c *CommandExecutor) AddOnt(port string, serialNumber string, description string) (string, error) {
+	if c.ExecutorContext.Level != 3 {
 		return "", fmt.Errorf("not in interface gpon mode")
 	}
 
@@ -110,7 +201,7 @@ func (c *Client) AddOnt(port string, serialNumber string, description string) (s
 		port,
 		serialNumber,
 		description,
-	), fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.Context.Frame, c.Context.Slot))
+	), fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 
 	if err != nil {
 		return "", fmt.Errorf("failed to run command: %v", err)
@@ -130,8 +221,8 @@ func (c *Client) AddOnt(port string, serialNumber string, description string) (s
 	return match[1], nil
 }
 
-func (c *Client) DeleteOnt(port string) error {
-	if c.Context.Level != 3 {
+func (c *CommandExecutor) DeleteOnt(port string) error {
+	if c.ExecutorContext.Level != 3 {
 		return fmt.Errorf("not in interface gpon mode")
 	}
 
@@ -141,7 +232,7 @@ func (c *Client) DeleteOnt(port string) error {
 	}
 	fmt.Print(output)
 
-	output, err = c.RunCommand("y", fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.Context.Frame, c.Context.Slot))
+	output, err = c.RunCommand("y", fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -149,12 +240,12 @@ func (c *Client) DeleteOnt(port string) error {
 	return nil
 }
 
-func (c *Client) AddNativeVlan(port string, ontID string) error {
-	if c.Context.Level != 3 {
+func (c *CommandExecutor) AddNativeVlan(port string, ontID string) error {
+	if c.ExecutorContext.Level != 3 {
 		return fmt.Errorf("not in interface gpon mode")
 	}
 
-	output, err := c.RunCommand(fmt.Sprintf("ont port native-vlan %s %s eth 1 vlan 20 priority 0", port, ontID), fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.Context.Frame, c.Context.Slot))
+	output, err := c.RunCommand(fmt.Sprintf("ont port native-vlan %s %s eth 1 vlan 20 priority 0", port, ontID), fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -167,8 +258,8 @@ func (c *Client) AddNativeVlan(port string, ontID string) error {
 	return nil
 }
 
-func (c *Client) AddServicePort(vlan string, frame string, slot string, port string, ontID string) error {
-	if c.Context.Level != 2 {
+func (c *CommandExecutor) AddServicePort(vlan string, frame string, slot string, port string, ontID string) error {
+	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")
 	}
 
@@ -185,8 +276,8 @@ func (c *Client) AddServicePort(vlan string, frame string, slot string, port str
 	return nil
 }
 
-func (c *Client) GetOntData(frame string, slot string, port string, ontID string) (*ONT, error) {
-	if c.Context.Level != 2 {
+func (c *CommandExecutor) GetOntData(frame string, slot string, port string, ontID string) (*ONT, error) {
+	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
 
@@ -227,8 +318,8 @@ func (c *Client) GetOntData(frame string, slot string, port string, ontID string
 	return ont, nil
 }
 
-func (c *Client) UndoServicePort(id string) error {
-	if c.Context.Level != 2 {
+func (c *CommandExecutor) UndoServicePort(id string) error {
+	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")
 	}
 
