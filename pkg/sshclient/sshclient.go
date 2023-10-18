@@ -11,7 +11,7 @@ type ONT struct {
 	ServicePort  string
 }
 
-type UnmanagedONT struct {
+type ONTDetail struct {
 	Number             string
 	FSP                string
 	OntSN              string

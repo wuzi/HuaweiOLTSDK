@@ -2,8 +2,8 @@ package sshclient
 
 import "strings"
 
-func ParseUnmanagedONT(output string) ([]UnmanagedONT, error) {
-	var results []UnmanagedONT
+func ParseUnmanagedONT(output string) ([]ONTDetail, error) {
+	var results []ONTDetail
 
 	sections := strings.Split(output, "   ----------------------------------------------------------------------------")
 
@@ -21,7 +21,7 @@ func ParseUnmanagedONT(output string) ([]UnmanagedONT, error) {
 			continue
 		}
 
-		ont := UnmanagedONT{
+		ont := ONTDetail{
 			Number:             strings.TrimSpace(strings.TrimPrefix(cleanLines[0], "Number              :")),
 			FSP:                strings.TrimSpace(strings.TrimPrefix(cleanLines[1], "F/S/P               :")),
 			OntSN:              strings.TrimSpace(strings.TrimPrefix(cleanLines[2], "Ont SN              :")),

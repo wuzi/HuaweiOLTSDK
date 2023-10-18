@@ -165,7 +165,7 @@ func (c *CommandExecutor) Quit(exit bool) error {
 	return nil
 }
 
-func (c *CommandExecutor) DisplayUnmanagedOnt() ([]UnmanagedONT, error) {
+func (c *CommandExecutor) DisplayUnmanagedOnt() ([]ONTDetail, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
