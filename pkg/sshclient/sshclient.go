@@ -11,8 +11,8 @@ import (
 
 type Context struct {
 	Level int
-	Frame int
-	Slot  int
+	Frame string
+	Slot  string
 }
 
 type Client struct {

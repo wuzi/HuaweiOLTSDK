@@ -1,12 +1,22 @@
 package sshclient
 
 import (
-	"strconv"
 	"strings"
 )
 
 type ONT struct {
-	Number             int
+	ID           string
+	Frame        string
+	Slot         string
+	Port         string
+	SerialNumber string
+	VlanID       string
+	Description  string
+	ServicePort  string
+}
+
+type UnmanagedONT struct {
+	Number             string
 	FSP                string
 	OntSN              string
 	Password           string
@@ -20,8 +30,8 @@ type ONT struct {
 	OntAutofindTime    string
 }
 
-func ParseUnmanagedONT(output string) ([]ONT, error) {
-	var results []ONT
+func ParseUnmanagedONT(output string) ([]UnmanagedONT, error) {
+	var results []UnmanagedONT
 
 	sections := strings.Split(output, "   ----------------------------------------------------------------------------")
 
@@ -39,13 +49,8 @@ func ParseUnmanagedONT(output string) ([]ONT, error) {
 			continue
 		}
 
-		number, err := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(cleanLines[0], "Number              :")))
-		if err != nil {
-			return nil, err
-		}
-
-		ont := ONT{
-			Number:             number,
+		ont := UnmanagedONT{
+			Number:             strings.TrimSpace(strings.TrimPrefix(cleanLines[0], "Number              :")),
 			FSP:                strings.TrimSpace(strings.TrimPrefix(cleanLines[1], "F/S/P               :")),
 			OntSN:              strings.TrimSpace(strings.TrimPrefix(cleanLines[2], "Ont SN              :")),
 			Password:           strings.TrimSpace(strings.TrimPrefix(cleanLines[3], "Password            :")),
