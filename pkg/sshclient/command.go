@@ -32,7 +32,7 @@ func (c *Client) Config() error {
 	return nil
 }
 
-func (c *Client) Quit() error {
+func (c *Client) Quit(exit bool) error {
 	var output string
 	var err error
 
@@ -42,6 +42,10 @@ func (c *Client) Quit() error {
 			return fmt.Errorf("failed to run command: %v", err)
 		}
 		fmt.Print(output)
+		c.Context.Level = 2
+		if !exit {
+			return nil
+		}
 	}
 
 	if c.Context.Level >= 2 {
@@ -50,6 +54,10 @@ func (c *Client) Quit() error {
 			return fmt.Errorf("failed to run command: %v", err)
 		}
 		fmt.Print(output)
+		c.Context.Level = 1
+		if !exit {
+			return nil
+		}
 	}
 
 	output, err = c.RunCommand("quit", "before logout")
@@ -140,3 +148,30 @@ func (c *Client) DeleteOnt(port int) error {
 	fmt.Print(output)
 	return nil
 }
+
+//func (c *Client) AddOntVlan(slot int, port int) error {
+//	output, err := c.RunCommand(fmt.Sprintf("ont port native-vlan %d %d eth 1 vlan 20 priority 0", slot, port), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", frame, slot))
+//	if err != nil {
+//		return fmt.Errorf("failed to run command: %v", err)
+//	}
+//	fmt.Print(output)
+//	return nil
+//}
+//
+//func (c *Client) addServicePort(vlan int, frame int, slot int, port int, ontID int) error {
+//	output, err := c.RunCommand(fmt.Sprintf("service-port vlan %d gpon %d/%d/%d ont %d gemport 20 multi-service user-vlan 20 tag-transform translate inbound traffic-table index 10 outbound traffic-table index 10", vlan, frame, slot, port, ontID), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", frame, slot))
+//	if err != nil {
+//		return fmt.Errorf("failed to run command: %v", err)
+//	}
+//	fmt.Print(output)
+//	return nil
+//}
+//
+//func (c *Client) undoServicePort(portId int) error {
+//	output, err := c.RunCommand(fmt.Sprintf("undo service-port %d", portId), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", frame, slot))
+//	if err != nil {
+//		return fmt.Errorf("failed to run command: %v", err)
+//	}
+//	fmt.Print(output)
+//	return nil
+//}
