@@ -3,7 +3,7 @@ package sshclient
 import "strings"
 
 func ParseUnmanagedONT(output string) ([]ONTDetail, error) {
-	var results []ONTDetail
+	results := make([]ONTDetail, 0)
 
 	sections := strings.Split(output, "   ----------------------------------------------------------------------------")
 
