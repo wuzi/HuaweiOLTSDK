@@ -28,17 +28,7 @@ type ONTDetail struct {
 	OntAutofindTime    string `json:"auto_find_time"`
 }
 
-func (o *ONTDetail) GetPort() string {
+func (o *ONTDetail) GetFrameSerialPort() (string, string, string) {
 	parts := strings.Split(o.FSP, "/")
-	return parts[2]
-}
-
-func (o *ONTDetail) GetSlot() string {
-	parts := strings.Split(o.FSP, "/")
-	return parts[1]
-}
-
-func (o *ONTDetail) GetFrame() string {
-	parts := strings.Split(o.FSP, "/")
-	return parts[0]
+	return parts[0], parts[1], parts[2]
 }
