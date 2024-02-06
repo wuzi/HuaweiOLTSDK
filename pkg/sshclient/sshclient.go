@@ -1,5 +1,7 @@
 package sshclient
 
+import "strings"
+
 type ONT struct {
 	ID           string `json:"id"`
 	Frame        string `json:"frame"`
@@ -24,4 +26,19 @@ type ONTDetail struct {
 	OntEquipmentID     string `json:"equipment_id"`
 	OntCustomizedInfo  string `json:"customized_info"`
 	OntAutofindTime    string `json:"auto_find_time"`
+}
+
+func (o *ONTDetail) GetPort() string {
+	parts := strings.Split(o.FSP, "/")
+	return parts[2]
+}
+
+func (o *ONTDetail) GetSlot() string {
+	parts := strings.Split(o.FSP, "/")
+	return parts[1]
+}
+
+func (o *ONTDetail) GetFrame() string {
+	parts := strings.Split(o.FSP, "/")
+	return parts[0]
 }
