@@ -1,6 +1,9 @@
 package sshclient
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 type ONT struct {
 	ID           int    `json:"id"`
@@ -28,7 +31,13 @@ type ONTDetail struct {
 	OntAutofindTime    string `json:"auto_find_time"`
 }
 
-func (o *ONTDetail) GetFrameSlotPort() (string, string, string) {
+func (o *ONTDetail) GetFrameSlotPort() (*int, *int, *int) {
 	parts := strings.Split(o.FSP, "/")
-	return parts[0], parts[1], parts[2]
+	frame, err := strconv.Atoi(parts[0])
+	slot, err := strconv.Atoi(parts[1])
+	port, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, nil, nil
+	}
+	return &frame, &slot, &port
 }
