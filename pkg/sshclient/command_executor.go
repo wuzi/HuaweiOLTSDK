@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
 type ExecutorContext struct {
 	Level int
-	Frame string
-	Slot  string
+	Frame int
+	Slot  int
 }
 
 type CommandExecutor struct {
@@ -102,11 +103,11 @@ func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]ONTDetail, er
 	return ParseUnmanagedONT(output)
 }
 
-func (c *CommandExecutor) EnterInterfaceGPONMode(frame string, slot string) error {
+func (c *CommandExecutor) EnterInterfaceGPONMode(frame int, slot int) error {
 	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")
 	}
-	_, err := c.ExecuteCommand(fmt.Sprintf("interface gpon %s/%s", frame, slot), fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", frame, slot))
+	_, err := c.ExecuteCommand(fmt.Sprintf("interface gpon %d/%d", frame, slot), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", frame, slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -116,58 +117,63 @@ func (c *CommandExecutor) EnterInterfaceGPONMode(frame string, slot string) erro
 	return nil
 }
 
-func (c *CommandExecutor) AddOpticalNetworkTerminal(port string, serialNumber string, description string) (string, error) {
+func (c *CommandExecutor) AddOpticalNetworkTerminal(port int, serialNumber string, description string) (int, error) {
 	if c.ExecutorContext.Level != 3 {
-		return "", fmt.Errorf("not in interface gpon mode")
+		return 0, fmt.Errorf("not in interface gpon mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("ont add %s sn-auth %s omci ont-lineprofile-id 60 ont-srvprofile-id 35 desc %s",
+	output, err := c.ExecuteCommand(fmt.Sprintf("ont add %d sn-auth %s omci ont-lineprofile-id 60 ont-srvprofile-id 35 desc %s",
 		port,
 		serialNumber,
 		description,
-	), fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 
 	if err != nil {
-		return "", fmt.Errorf("failed to run command: %v", err)
+		return 0, fmt.Errorf("failed to run command: %v", err)
 	}
 
 	err = c.checkOutputFailure(output)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	re := regexp.MustCompile(`ONTID :(\d+)`)
 	match := re.FindStringSubmatch(output)
 	if len(match) < 2 {
-		return "", fmt.Errorf("ONTID not found in command output")
+		return 0, fmt.Errorf("ONTID not found in command output")
 	}
 
-	return match[1], nil
+	ontID, err := strconv.Atoi(match[1])
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse ONTID: %v", err)
+	}
+
+	return ontID, nil
 }
 
-func (c *CommandExecutor) DeleteOpticalNetworkTerminal(port string) error {
+func (c *CommandExecutor) DeleteOpticalNetworkTerminal(port int) error {
 	if c.ExecutorContext.Level != 3 {
 		return fmt.Errorf("not in interface gpon mode")
 	}
 
-	_, err := c.ExecuteCommand(fmt.Sprintf("ont delete %s all", port), "(y/n)[n]:")
+	_, err := c.ExecuteCommand(fmt.Sprintf("ont delete %d all", port), "(y/n)[n]:")
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	_, err = c.ExecuteCommand("y", fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	_, err = c.ExecuteCommand("y", fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 	return nil
 }
 
-func (c *CommandExecutor) AddNativeVirtualLan(port string, ontID string) error {
+func (c *CommandExecutor) AddNativeVirtualLan(port, ontID int) error {
 	if c.ExecutorContext.Level != 3 {
 		return fmt.Errorf("not in interface gpon mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("ont port native-vlan %s %s eth 1 vlan 20 priority 0", port, ontID), fmt.Sprintf("MA5683T(config-if-gpon-%s/%s)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	output, err := c.ExecuteCommand(fmt.Sprintf("ont port native-vlan %d %d eth 1 vlan 20 priority 0", port, ontID), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -180,12 +186,12 @@ func (c *CommandExecutor) AddNativeVirtualLan(port string, ontID string) error {
 	return nil
 }
 
-func (c *CommandExecutor) AddServicePort(vlan string, frame string, slot string, port string, ontID string) error {
+func (c *CommandExecutor) AddServicePort(vlan, frame, slot, port, ontID int) error {
 	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("service-port vlan %s gpon %s/%s/%s ont %s gemport 20 multi-service user-vlan 20 tag-transform translate inbound traffic-table index 10 outbound traffic-table index 10", vlan, frame, slot, port, ontID), "MA5683T(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("service-port vlan %d gpon %d/%d/%d ont %d gemport 20 multi-service user-vlan 20 tag-transform translate inbound traffic-table index 10 outbound traffic-table index 10", vlan, frame, slot, port, ontID), "MA5683T(config)#")
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -198,12 +204,12 @@ func (c *CommandExecutor) AddServicePort(vlan string, frame string, slot string,
 	return nil
 }
 
-func (c *CommandExecutor) GetOpticalNetworkTerminal(frame string, slot string, port string, ontID string) (*ONT, error) {
+func (c *CommandExecutor) GetOpticalNetworkTerminal(frame, slot, port, ontID int) (*ONT, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("display current-configuration ont %s/%s/%s %s", frame, slot, port, ontID), "MA5683T(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("display current-configuration ont %d/%d/%d %d", frame, slot, port, ontID), "MA5683T(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -229,22 +235,28 @@ func (c *CommandExecutor) GetOpticalNetworkTerminal(frame string, slot string, p
 	}
 
 	if match := regexp.MustCompile(`service-port (\d+)`).FindStringSubmatch(output); len(match) > 1 {
-		ont.ServicePort = match[1]
+		ont.ServicePort, err = strconv.Atoi(match[1])
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse service port: %v", err)
+		}
 	}
 
 	if match := regexp.MustCompile(`vlan (\d+) gpon`).FindStringSubmatch(output); len(match) > 1 {
-		ont.VlanID = match[1]
+		ont.VlanID, err = strconv.Atoi(match[1])
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse vlan id: %v", err)
+		}
 	}
 
 	return ont, nil
 }
 
-func (c *CommandExecutor) UndoServicePort(id string) error {
+func (c *CommandExecutor) UndoServicePort(id int) error {
 	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("undo service-port %s", id), "MA5683T(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("undo service-port %d", id), "MA5683T(config)#")
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
