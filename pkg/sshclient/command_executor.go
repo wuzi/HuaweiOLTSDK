@@ -122,9 +122,10 @@ func (c *CommandExecutor) AddOpticalNetworkTerminal(port int, serialNumber strin
 		return 0, fmt.Errorf("not in interface gpon mode")
 	}
 
+	serialParts := strings.Split(serialNumber, " ")
 	output, err := c.ExecuteCommand(fmt.Sprintf("ont add %d sn-auth %s omci ont-lineprofile-id 60 ont-srvprofile-id 35 desc %s",
 		port,
-		serialNumber,
+		serialParts[0],
 		description,
 	), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 
