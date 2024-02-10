@@ -46,35 +46,35 @@ func ParseUnmanagedONT(output string) ([]ONTDetail, error) {
 }
 
 type OnuOpticalInfo struct {
-	ONUNNIPortID                   string
-	ModuleType                     string
-	ModuleSubType                  string
-	UsedType                       string
-	EncapsulationType              string
-	OpticalPowerPrecision          string
-	VendorName                     string
-	VendorRev                      string
-	VendorPN                       string
-	VendorSN                       string
-	DateCode                       string
-	RxOpticalPower                 string
-	RxPowerCurrentWarningThreshold string
-	RxPowerCurrentAlarmThreshold   string
-	TxOpticalPower                 string
-	TxPowerCurrentWarningThreshold string
-	TxPowerCurrentAlarmThreshold   string
-	LaserBiasCurrent               string
-	TxBiasCurrentWarningThreshold  string
-	TxBiasCurrentAlarmThreshold    string
-	Temperature                    string
-	TemperatureWarningThreshold    string
-	TemperatureAlarmThreshold      string
-	Voltage                        string
-	SupplyVoltageWarningThreshold  string
-	SupplyVoltageAlarmThreshold    string
-	OLTRxONTOpticalPower           string
-	CATVRxOpticalPower             string
-	CATVRxPowerAlarmThreshold      string
+	ONUNNIPortID                   string `json:"onu_nni_port_id"`
+	ModuleType                     string `json:"module_type"`
+	ModuleSubType                  string `json:"module_sub_type"`
+	UsedType                       string `json:"used_type"`
+	EncapsulationType              string `json:"encapsulation_type"`
+	OpticalPowerPrecision          string `json:"optical_power_precision"`
+	VendorName                     string `json:"vendor_name"`
+	VendorRev                      string `json:"vendor_rev"`
+	VendorPN                       string `json:"vendor_pn"`
+	VendorSN                       string `json:"vendor_sn"`
+	DateCode                       string `json:"date_code"`
+	RxOpticalPower                 string `json:"rx_optical_power"`
+	RxPowerCurrentWarningThreshold string `json:"rx_power_current_warning_threshold"`
+	RxPowerCurrentAlarmThreshold   string `json:"rx_power_current_alarm_threshold"`
+	TxOpticalPower                 string `json:"tx_optical_power"`
+	TxPowerCurrentWarningThreshold string `json:"tx_power_current_warning_threshold"`
+	TxPowerCurrentAlarmThreshold   string `json:"tx_power_current_alarm_threshold"`
+	LaserBiasCurrent               string `json:"laser_bias_current"`
+	TxBiasCurrentWarningThreshold  string `json:"tx_bias_current_warning_threshold"`
+	TxBiasCurrentAlarmThreshold    string `json:"tx_bias_current_alarm_threshold"`
+	Temperature                    string `json:"temperature"`
+	TemperatureWarningThreshold    string `json:"temperature_warning_threshold"`
+	TemperatureAlarmThreshold      string `json:"temperature_alarm_threshold"`
+	Voltage                        string `json:"voltage"`
+	SupplyVoltageWarningThreshold  string `json:"supply_voltage_warning_threshold"`
+	SupplyVoltageAlarmThreshold    string `json:"supply_voltage_alarm_threshold"`
+	OLTRxONTOpticalPower           string `json:"olt_rx_ont_optical_power"`
+	CATVRxOpticalPower             string `json:"catv_rx_optical_power"`
+	CATVRxPowerAlarmThreshold      string `json:"catv_rx_power_alarm_threshold"`
 }
 
 func ParseOnuOpticalInfo(output string) *OnuOpticalInfo {
@@ -116,26 +116,26 @@ func ParseOnuOpticalInfo(output string) *OnuOpticalInfo {
 }
 
 type OntGeneralInfo struct {
-	FSP              string
-	ID               string
-	ControlFlag      string
-	RunState         string
-	ConfigState      string
-	MatchState       string
-	DBAType          string
-	Distance         string
-	LastDistance     string
-	BatteryState     string
-	AuthenticType    string
-	SN               string
-	ManagementMode   string
-	SoftwareWorkMode string
-	IsolationState   string
-	Description      string
-	LatDownCause     string
-	LastUpTime       string
-	LastDownTime     string
-	OnlineDuration   string
+	FSP              string `json:"fsp"`
+	ID               string `json:"id"`
+	ControlFlag      string `json:"control_flag"`
+	RunState         string `json:"run_state"`
+	ConfigState      string `json:"config_state"`
+	MatchState       string `json:"match_state"`
+	DBAType          string `json:"dba_type"`
+	Distance         string `json:"distance"`
+	LastDistance     string `json:"last_distance"`
+	BatteryState     string `json:"battery_state"`
+	AuthenticType    string `json:"authentic_type"`
+	SN               string `json:"sn"`
+	ManagementMode   string `json:"management_mode"`
+	SoftwareWorkMode string `json:"software_work_mode"`
+	IsolationState   string `json:"isolation_state"`
+	Description      string `json:"description"`
+	LatDownCause     string `json:"last_down_cause"`
+	LastUpTime       string `json:"last_up_time"`
+	LastDownTime     string `json:"last_down_time"`
+	OnlineDuration   string `json:"online_duration"`
 }
 
 func (o *OntGeneralInfo) GetFrameSlotPort() (*int, *int, *int) {
