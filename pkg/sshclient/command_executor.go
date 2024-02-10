@@ -103,6 +103,17 @@ func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]ONTDetail, er
 	return ParseUnmanagedONT(output)
 }
 
+func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OnuOpticalInfo, error) {
+	if c.ExecutorContext.Level != 3 {
+		return nil, fmt.Errorf("not in config mode")
+	}
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont optical-info %d %d", port, ontID), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	if err != nil {
+		return nil, fmt.Errorf("failed to run command: %v", err)
+	}
+	return ParseOnuOpticalInfo(output), nil
+}
+
 func (c *CommandExecutor) EnterInterfaceGPONMode(frame int, slot int) error {
 	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")

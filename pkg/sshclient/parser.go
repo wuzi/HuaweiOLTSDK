@@ -1,6 +1,8 @@
 package sshclient
 
-import "strings"
+import (
+	"strings"
+)
 
 func ParseUnmanagedONT(output string) ([]ONTDetail, error) {
 	results := make([]ONTDetail, 0)
@@ -40,4 +42,74 @@ func ParseUnmanagedONT(output string) ([]ONTDetail, error) {
 	}
 
 	return results, nil
+}
+
+type OnuOpticalInfo struct {
+	ONUNNIPortID                   string
+	ModuleType                     string
+	ModuleSubType                  string
+	UsedType                       string
+	EncapsulationType              string
+	OpticalPowerPrecision          string
+	VendorName                     string
+	VendorRev                      string
+	VendorPN                       string
+	VendorSN                       string
+	DateCode                       string
+	RxOpticalPower                 string
+	RxPowerCurrentWarningThreshold string
+	RxPowerCurrentAlarmThreshold   string
+	TxOpticalPower                 string
+	TxPowerCurrentWarningThreshold string
+	TxPowerCurrentAlarmThreshold   string
+	LaserBiasCurrent               string
+	TxBiasCurrentWarningThreshold  string
+	TxBiasCurrentAlarmThreshold    string
+	Temperature                    string
+	TemperatureWarningThreshold    string
+	TemperatureAlarmThreshold      string
+	Voltage                        string
+	SupplyVoltageWarningThreshold  string
+	SupplyVoltageAlarmThreshold    string
+	OLTRxONTOpticalPower           string
+	CATVRxOpticalPower             string
+	CATVRxPowerAlarmThreshold      string
+}
+
+func ParseOnuOpticalInfo(output string) *OnuOpticalInfo {
+	lines := strings.Split(output, "\n")
+
+	details := &OnuOpticalInfo{
+		ONUNNIPortID:                   strings.TrimPrefix(strings.TrimSpace(lines[2]), "ONU NNI port ID                        : "),
+		ModuleType:                     strings.TrimPrefix(strings.TrimSpace(lines[3]), "Module type                            : "),
+		ModuleSubType:                  strings.TrimPrefix(strings.TrimSpace(lines[4]), "Module sub-type                        : "),
+		UsedType:                       strings.TrimPrefix(strings.TrimSpace(lines[5]), "Used type                              : "),
+		EncapsulationType:              strings.TrimPrefix(strings.TrimSpace(lines[6]), "Encapsulation Type                     : "),
+		OpticalPowerPrecision:          strings.TrimPrefix(strings.TrimSpace(lines[7]), "Optical power precision(dBm)           : "),
+		VendorName:                     strings.TrimPrefix(strings.TrimSpace(lines[8]), "Vendor name                            : "),
+		VendorRev:                      strings.TrimPrefix(strings.TrimSpace(lines[9]), "Vendor rev                             : "),
+		VendorPN:                       strings.TrimPrefix(strings.TrimSpace(lines[10]), "Vendor PN                              : "),
+		VendorSN:                       strings.TrimPrefix(strings.TrimSpace(lines[11]), "Vendor SN                              : "),
+		DateCode:                       strings.TrimPrefix(strings.TrimSpace(lines[12]), "Date Code                              : "),
+		RxOpticalPower:                 strings.TrimPrefix(strings.TrimSpace(lines[13]), "Rx optical power(dBm)                  : "),
+		RxPowerCurrentWarningThreshold: strings.TrimPrefix(strings.TrimSpace(lines[14]), "Rx power current warning threshold(dBm): "),
+		RxPowerCurrentAlarmThreshold:   strings.TrimPrefix(strings.TrimSpace(lines[15]), "Rx power current alarm threshold(dBm)  : "),
+		TxOpticalPower:                 strings.TrimPrefix(strings.TrimSpace(lines[16]), "Tx optical power(dBm)                  : "),
+		TxPowerCurrentWarningThreshold: strings.TrimPrefix(strings.TrimSpace(lines[17]), "Tx power current warning threshold(dBm): "),
+		TxPowerCurrentAlarmThreshold:   strings.TrimPrefix(strings.TrimSpace(lines[18]), "Tx power current alarm threshold(dBm)  : "),
+		LaserBiasCurrent:               strings.TrimPrefix(strings.TrimSpace(lines[19]), "Laser bias current(mA)                 : "),
+		TxBiasCurrentWarningThreshold:  strings.TrimPrefix(strings.TrimSpace(lines[20]), "Tx bias current warning threshold(mA)  : "),
+		TxBiasCurrentAlarmThreshold:    strings.TrimPrefix(strings.TrimSpace(lines[21]), "Tx bias current alarm threshold(mA)    : "),
+		Temperature:                    strings.TrimPrefix(strings.TrimSpace(lines[22]), "Temperature(C)                         : "),
+		TemperatureWarningThreshold:    strings.TrimPrefix(strings.TrimSpace(lines[23]), "Temperature warning threshold(C)       : "),
+		TemperatureAlarmThreshold:      strings.TrimPrefix(strings.TrimSpace(lines[24]), "Temperature alarm threshold(C)         : "),
+		Voltage:                        strings.TrimPrefix(strings.TrimSpace(lines[25]), "Voltage(V)                             : "),
+		SupplyVoltageWarningThreshold:  strings.TrimPrefix(strings.TrimSpace(lines[26]), "Supply voltage warning threshold(V)    : "),
+		SupplyVoltageAlarmThreshold:    strings.TrimPrefix(strings.TrimSpace(lines[27]), "Supply voltage alarm threshold(V)      : "),
+		OLTRxONTOpticalPower:           strings.TrimPrefix(strings.TrimSpace(lines[28]), "OLT Rx ONT optical power(dBm)          : "),
+		CATVRxOpticalPower:             strings.TrimPrefix(strings.TrimSpace(lines[29]), "CATV Rx optical power(dBm)             : "),
+		CATVRxPowerAlarmThreshold:      strings.TrimPrefix(strings.TrimSpace(lines[30]), "CATV Rx power alarm threshold(dBm)     : "),
+	}
+
+	return details
 }
