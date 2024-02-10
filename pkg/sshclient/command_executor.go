@@ -125,6 +125,17 @@ func (c *CommandExecutor) GetOntInfoBySn(sn string) (*OntGeneralInfo, error) {
 	return ParseOntInfoBySn(output), nil
 }
 
+func (c *CommandExecutor) GetOntServicePorts(frame, slot, port, ontID int) ([]ServicePort, error) {
+	if c.ExecutorContext.Level != 2 {
+		return nil, fmt.Errorf("not in config mode")
+	}
+	output, err := c.ExecuteCommand(fmt.Sprintf("display service-port port %d/%d/%d ont %d\n", frame, slot, port, ontID), "MA5683T(config)#")
+	if err != nil {
+		return nil, fmt.Errorf("failed to run command: %v", err)
+	}
+	return ParseServicePorts(output)
+}
+
 func (c *CommandExecutor) EnterInterfaceGPONMode(frame int, slot int) error {
 	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")

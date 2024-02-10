@@ -181,3 +181,33 @@ func ParseOntInfoBySn(output string) *OntGeneralInfo {
 
 	return ont
 }
+
+type ServicePort struct {
+	Index int
+	Vlan  int
+}
+
+func ParseServicePorts(output string) ([]ServicePort, error) {
+	results := make([]ServicePort, 0)
+
+	lines := strings.Split(output, "\n")
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+
+		if len(line) > 0 && line[0] >= '0' && line[0] <= '9' {
+			parts := strings.Fields(line)
+			index, err := strconv.Atoi(parts[0])
+			if err != nil {
+				return nil, err
+			}
+			vlan, err := strconv.Atoi(parts[1])
+			if err != nil {
+				return nil, err
+			}
+			results = append(results, ServicePort{Index: index, Vlan: vlan})
+		}
+	}
+
+	return results, nil
+}
