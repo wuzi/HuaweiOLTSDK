@@ -92,7 +92,7 @@ func (c *CommandExecutor) ExitCommandSession() error {
 	return c.quit(true)
 }
 
-func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]ONTDetail, error) {
+func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]UnmanagedONT, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
@@ -103,7 +103,7 @@ func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]ONTDetail, er
 	return ParseUnmanagedONT(output)
 }
 
-func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OnuOpticalInfo, error) {
+func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OpticalInfo, error) {
 	if c.ExecutorContext.Level != 3 {
 		return nil, fmt.Errorf("not in config mode")
 	}
@@ -111,10 +111,10 @@ func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OnuOpticalInfo, erro
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
-	return ParseOnuOpticalInfo(output), nil
+	return ParseOpticalInfo(output), nil
 }
 
-func (c *CommandExecutor) GetOntInfoBySn(sn string) (*OntGeneralInfo, error) {
+func (c *CommandExecutor) GetGeneralInfoBySn(sn string) (*GeneralInfo, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
@@ -122,10 +122,10 @@ func (c *CommandExecutor) GetOntInfoBySn(sn string) (*OntGeneralInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
-	return ParseOntInfoBySn(output), nil
+	return ParseGeneralInfoBySn(output), nil
 }
 
-func (c *CommandExecutor) GetOntServicePorts(frame, slot, port, ontID int) ([]ServicePort, error) {
+func (c *CommandExecutor) GetServicePorts(frame, slot, port, ontID int) ([]ServicePort, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}

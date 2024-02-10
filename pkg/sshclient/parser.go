@@ -5,8 +5,27 @@ import (
 	"strings"
 )
 
-func ParseUnmanagedONT(output string) ([]ONTDetail, error) {
-	results := make([]ONTDetail, 0)
+type UnmanagedONT struct {
+	Number             string `json:"number"`
+	FSP                string `json:"fsp"`
+	OntSN              string `json:"serial_number"`
+	Password           string `json:"password"`
+	Loid               string `json:"lo_id"`
+	Checkcode          string `json:"check_code"`
+	VendorID           string `json:"vendor_id"`
+	OntVersion         string `json:"version"`
+	OntSoftwareVersion string `json:"software_version"`
+	OntEquipmentID     string `json:"equipment_id"`
+	OntCustomizedInfo  string `json:"customized_info"`
+	OntAutofindTime    string `json:"auto_find_time"`
+}
+
+func (o *UnmanagedONT) GetFrameSlotPort() (*int, *int, *int) {
+	return getFrameSlotPortFromFSP(o.FSP)
+}
+
+func ParseUnmanagedONT(output string) ([]UnmanagedONT, error) {
+	results := make([]UnmanagedONT, 0)
 
 	sections := strings.Split(output, "   ----------------------------------------------------------------------------")
 
@@ -24,7 +43,7 @@ func ParseUnmanagedONT(output string) ([]ONTDetail, error) {
 			continue
 		}
 
-		ont := ONTDetail{
+		ont := UnmanagedONT{
 			Number:             strings.TrimSpace(strings.TrimPrefix(cleanLines[0], "Number              :")),
 			FSP:                strings.TrimSpace(strings.TrimPrefix(cleanLines[1], "F/S/P               :")),
 			OntSN:              strings.TrimSpace(strings.TrimPrefix(cleanLines[2], "Ont SN              :")),
@@ -45,7 +64,7 @@ func ParseUnmanagedONT(output string) ([]ONTDetail, error) {
 	return results, nil
 }
 
-type OnuOpticalInfo struct {
+type OpticalInfo struct {
 	ONUNNIPortID                   string `json:"onu_nni_port_id"`
 	ModuleType                     string `json:"module_type"`
 	ModuleSubType                  string `json:"module_sub_type"`
@@ -77,10 +96,10 @@ type OnuOpticalInfo struct {
 	CATVRxPowerAlarmThreshold      string `json:"catv_rx_power_alarm_threshold"`
 }
 
-func ParseOnuOpticalInfo(output string) *OnuOpticalInfo {
+func ParseOpticalInfo(output string) *OpticalInfo {
 	lines := strings.Split(output, "\n")
 
-	details := &OnuOpticalInfo{
+	details := &OpticalInfo{
 		ONUNNIPortID:                   strings.TrimPrefix(strings.TrimSpace(lines[2]), "ONU NNI port ID                        : "),
 		ModuleType:                     strings.TrimPrefix(strings.TrimSpace(lines[3]), "Module type                            : "),
 		ModuleSubType:                  strings.TrimPrefix(strings.TrimSpace(lines[4]), "Module sub-type                        : "),
@@ -115,7 +134,7 @@ func ParseOnuOpticalInfo(output string) *OnuOpticalInfo {
 	return details
 }
 
-type OntGeneralInfo struct {
+type GeneralInfo struct {
 	FSP              string `json:"fsp"`
 	ID               string `json:"id"`
 	ControlFlag      string `json:"control_flag"`
@@ -138,25 +157,18 @@ type OntGeneralInfo struct {
 	OnlineDuration   string `json:"online_duration"`
 }
 
-func (o *OntGeneralInfo) GetFrameSlotPort() (*int, *int, *int) {
-	parts := strings.Split(o.FSP, "/")
-	frame, err := strconv.Atoi(parts[0])
-	slot, err := strconv.Atoi(parts[1])
-	port, err := strconv.Atoi(parts[2])
-	if err != nil {
-		return nil, nil, nil
-	}
-	return &frame, &slot, &port
+func (o *GeneralInfo) GetFrameSlotPort() (*int, *int, *int) {
+	return getFrameSlotPortFromFSP(o.FSP)
 }
 
-func ParseOntInfoBySn(output string) *OntGeneralInfo {
+func ParseGeneralInfoBySn(output string) *GeneralInfo {
 	lines := strings.Split(output, "\n")
 
 	if strings.TrimSpace(lines[1]) == "The required ONT does not exist" {
 		return nil
 	}
 
-	ont := &OntGeneralInfo{
+	ont := &GeneralInfo{
 		FSP:              strings.TrimPrefix(strings.TrimSpace(lines[2]), "F/S/P                   : "),
 		ID:               strings.TrimPrefix(strings.TrimSpace(lines[3]), "ONT-ID                  : "),
 		ControlFlag:      strings.TrimPrefix(strings.TrimSpace(lines[4]), "Control flag            : "),
@@ -210,4 +222,15 @@ func ParseServicePorts(output string) ([]ServicePort, error) {
 	}
 
 	return results, nil
+}
+
+func getFrameSlotPortFromFSP(fsp string) (*int, *int, *int) {
+	parts := strings.Split(fsp, "/")
+	frame, err := strconv.Atoi(parts[0])
+	slot, err := strconv.Atoi(parts[1])
+	port, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, nil, nil
+	}
+	return &frame, &slot, &port
 }
