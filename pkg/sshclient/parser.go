@@ -1,6 +1,7 @@
 package sshclient
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -135,6 +136,17 @@ type OntGeneralInfo struct {
 	LastUpTime       string
 	LastDownTime     string
 	OnlineDuration   string
+}
+
+func (o *OntGeneralInfo) GetFrameSlotPort() (*int, *int, *int) {
+	parts := strings.Split(o.FSP, "/")
+	frame, err := strconv.Atoi(parts[0])
+	slot, err := strconv.Atoi(parts[1])
+	port, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, nil, nil
+	}
+	return &frame, &slot, &port
 }
 
 func ParseOntInfoBySn(output string) *OntGeneralInfo {
