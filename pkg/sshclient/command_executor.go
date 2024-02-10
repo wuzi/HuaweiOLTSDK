@@ -114,6 +114,17 @@ func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OnuOpticalInfo, erro
 	return ParseOnuOpticalInfo(output), nil
 }
 
+func (c *CommandExecutor) GetOntInfoBySn(sn string) (*OntGeneralInfo, error) {
+	if c.ExecutorContext.Level != 2 {
+		return nil, fmt.Errorf("not in config mode")
+	}
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s", sn), "MA5683T(config)#")
+	if err != nil {
+		return nil, fmt.Errorf("failed to run command: %v", err)
+	}
+	return ParseOntInfoBySn(output), nil
+}
+
 func (c *CommandExecutor) EnterInterfaceGPONMode(frame int, slot int) error {
 	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")

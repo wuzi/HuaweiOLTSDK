@@ -113,3 +113,59 @@ func ParseOnuOpticalInfo(output string) *OnuOpticalInfo {
 
 	return details
 }
+
+type OntGeneralInfo struct {
+	FSP              string
+	ID               string
+	ControlFlag      string
+	RunState         string
+	ConfigState      string
+	MatchState       string
+	DBAType          string
+	Distance         string
+	LastDistance     string
+	BatteryState     string
+	AuthenticType    string
+	SN               string
+	ManagementMode   string
+	SoftwareWorkMode string
+	IsolationState   string
+	Description      string
+	LatDownCause     string
+	LastUpTime       string
+	LastDownTime     string
+	OnlineDuration   string
+}
+
+func ParseOntInfoBySn(output string) *OntGeneralInfo {
+	lines := strings.Split(output, "\n")
+
+	if strings.TrimSpace(lines[1]) == "The required ONT does not exist" {
+		return nil
+	}
+
+	ont := &OntGeneralInfo{
+		FSP:              strings.TrimPrefix(strings.TrimSpace(lines[2]), "F/S/P                   : "),
+		ID:               strings.TrimPrefix(strings.TrimSpace(lines[3]), "ONT-ID                  : "),
+		ControlFlag:      strings.TrimPrefix(strings.TrimSpace(lines[4]), "Control flag            : "),
+		RunState:         strings.TrimPrefix(strings.TrimSpace(lines[5]), "Run state               : "),
+		ConfigState:      strings.TrimPrefix(strings.TrimSpace(lines[6]), "Config state            : "),
+		MatchState:       strings.TrimPrefix(strings.TrimSpace(lines[7]), "Match state             : "),
+		DBAType:          strings.TrimPrefix(strings.TrimSpace(lines[8]), "DBA type                : "),
+		Distance:         strings.TrimPrefix(strings.TrimSpace(lines[9]), "ONT distance(m)         : "),
+		LastDistance:     strings.TrimPrefix(strings.TrimSpace(lines[10]), "ONT last distance(m)    : "),
+		BatteryState:     strings.TrimPrefix(strings.TrimSpace(lines[11]), "ONT battery state       : "),
+		AuthenticType:    strings.TrimPrefix(strings.TrimSpace(lines[15]), "Authentic type          : "),
+		SN:               strings.TrimPrefix(strings.TrimSpace(lines[16]), "SN                      : "),
+		ManagementMode:   strings.TrimPrefix(strings.TrimSpace(lines[17]), "Management mode         : "),
+		SoftwareWorkMode: strings.TrimPrefix(strings.TrimSpace(lines[18]), "Software work mode      : "),
+		IsolationState:   strings.TrimPrefix(strings.TrimSpace(lines[19]), "Isolation state         : "),
+		Description:      strings.TrimPrefix(strings.TrimSpace(lines[21]), "Description             : "),
+		LatDownCause:     strings.TrimPrefix(strings.TrimSpace(lines[22]), "Last down cause         : "),
+		LastUpTime:       strings.TrimPrefix(strings.TrimSpace(lines[23]), "Last up time            : "),
+		LastDownTime:     strings.TrimPrefix(strings.TrimSpace(lines[24]), "Last down time          : "),
+		OnlineDuration:   strings.TrimPrefix(strings.TrimSpace(lines[25]), "ONT online duration     : "),
+	}
+
+	return ont
+}
