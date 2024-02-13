@@ -15,10 +15,11 @@ type ExecutorContext struct {
 }
 
 type CommandExecutor struct {
-	Verbose         bool
-	Stdout          io.Reader
-	Stdin           io.WriteCloser
-	ExecutorContext ExecutorContext
+	Verbose           bool
+	Stdout            io.Reader
+	Stdin             io.WriteCloser
+	ExecutorContext   ExecutorContext
+	ConnectionManager *ConnectionManager
 }
 
 type CommandExecutorOptions struct {
@@ -42,10 +43,11 @@ func NewCommandExecutor(connManager *ConnectionManager, options CommandExecutorO
 	}
 
 	commExecutor := &CommandExecutor{
-		Stdout:          stdout,
-		Stdin:           stdin,
-		ExecutorContext: ExecutorContext{},
-		Verbose:         options.Verbose,
+		Stdout:            stdout,
+		Stdin:             stdin,
+		ExecutorContext:   ExecutorContext{},
+		Verbose:           options.Verbose,
+		ConnectionManager: connManager,
 	}
 
 	_, err = commExecutor.readOutputUntilPrompt("MA5683T>")
@@ -89,7 +91,14 @@ func (c *CommandExecutor) ExitCommandLevel() error {
 }
 
 func (c *CommandExecutor) ExitCommandSession() error {
-	return c.quit(true)
+	err := c.quit(true)
+	if err != nil {
+		err := c.ConnectionManager.Close()
+		if err != nil {
+			fmt.Println("Failed to close connection: ", err)
+		}
+	}
+	return err
 }
 
 func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]UnmanagedONT, error) {
