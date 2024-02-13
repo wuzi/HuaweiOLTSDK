@@ -124,7 +124,7 @@ func (c *CommandExecutor) GetGeneralInfoBySn(sn string) (*GeneralInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
-	return ParseGeneralInfoBySn(output), nil
+	return ParseGeneralInfoBySn(output)
 }
 
 func (c *CommandExecutor) GetServicePorts(frame, slot, port, ontID int) ([]ServicePort, error) {

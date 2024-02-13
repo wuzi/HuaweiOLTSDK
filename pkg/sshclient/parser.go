@@ -161,11 +161,14 @@ func (o *GeneralInfo) GetFrameSlotPort() (*int, *int, *int) {
 	return getFrameSlotPortFromFSP(o.FSP)
 }
 
-func ParseGeneralInfoBySn(output string) *GeneralInfo {
+func ParseGeneralInfoBySn(output string) (*GeneralInfo, error) {
 	lines := strings.Split(output, "\n")
 
 	if strings.TrimSpace(lines[1]) == "The required ONT does not exist" {
-		return nil
+		return nil, NotFoundError{}
+	}
+	if strings.Contains(strings.TrimSpace(lines[2]), "Parameter error") {
+		return nil, InvalidSerialNumberError{}
 	}
 
 	ont := &GeneralInfo{
@@ -191,7 +194,7 @@ func ParseGeneralInfoBySn(output string) *GeneralInfo {
 		OnlineDuration:   strings.TrimPrefix(strings.TrimSpace(lines[26]), "ONT online duration     : "),
 	}
 
-	return ont
+	return ont, nil
 }
 
 type ServicePort struct {
