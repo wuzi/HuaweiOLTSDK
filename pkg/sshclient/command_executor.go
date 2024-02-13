@@ -91,14 +91,7 @@ func (c *CommandExecutor) ExitCommandLevel() error {
 }
 
 func (c *CommandExecutor) ExitCommandSession() error {
-	err := c.quit(true)
-	if err != nil {
-		err := c.ConnectionManager.Close()
-		if err != nil {
-			fmt.Println("Failed to close connection: ", err)
-		}
-	}
-	return err
+	return c.quit(true)
 }
 
 func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]UnmanagedONT, error) {
@@ -345,6 +338,13 @@ func (c *CommandExecutor) quit(exit bool) error {
 	_, err = c.ExecuteCommand("y", "to log on")
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
+	}
+
+	if err != nil {
+		err := c.ConnectionManager.Close()
+		if err != nil {
+			fmt.Println("Failed to close connection: ", err)
+		}
 	}
 	return nil
 }
