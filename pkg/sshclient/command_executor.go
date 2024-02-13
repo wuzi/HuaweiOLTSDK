@@ -120,7 +120,7 @@ func (c *CommandExecutor) GetGeneralInfoBySn(sn string) (*GeneralInfo, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s", sn), "MA5683T(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s", strings.Split(sn, " ")[0]), "MA5683T(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -152,15 +152,14 @@ func (c *CommandExecutor) EnterInterfaceGPONMode(frame int, slot int) error {
 	return nil
 }
 
-func (c *CommandExecutor) AddOpticalNetworkTerminal(port int, serialNumber string, description string) (int, error) {
+func (c *CommandExecutor) AddOpticalNetworkTerminal(port int, sn string, description string) (int, error) {
 	if c.ExecutorContext.Level != 3 {
 		return 0, fmt.Errorf("not in interface gpon mode")
 	}
 
-	serialParts := strings.Split(serialNumber, " ")
 	output, err := c.ExecuteCommand(fmt.Sprintf("ont add %d sn-auth %s omci ont-lineprofile-id 60 ont-srvprofile-id 35 desc %s",
 		port,
-		serialParts[0],
+		strings.Split(sn, " ")[0],
 		description,
 	), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 
