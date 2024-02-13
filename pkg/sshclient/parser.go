@@ -188,7 +188,7 @@ func ParseGeneralInfoBySn(output string) *GeneralInfo {
 		LatDownCause:     strings.TrimPrefix(strings.TrimSpace(lines[22]), "Last down cause         : "),
 		LastUpTime:       strings.TrimPrefix(strings.TrimSpace(lines[23]), "Last up time            : "),
 		LastDownTime:     strings.TrimPrefix(strings.TrimSpace(lines[24]), "Last down time          : "),
-		OnlineDuration:   strings.TrimPrefix(strings.TrimSpace(lines[25]), "ONT online duration     : "),
+		OnlineDuration:   strings.TrimPrefix(strings.TrimSpace(lines[26]), "ONT online duration     : "),
 	}
 
 	return ont
