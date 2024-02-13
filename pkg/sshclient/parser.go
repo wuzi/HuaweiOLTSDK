@@ -195,8 +195,8 @@ func ParseGeneralInfoBySn(output string) *GeneralInfo {
 }
 
 type ServicePort struct {
-	Index int
-	Vlan  int
+	Index int `json:"index"`
+	Vlan  int `json:"vlan"`
 }
 
 func ParseServicePorts(output string) ([]ServicePort, error) {
