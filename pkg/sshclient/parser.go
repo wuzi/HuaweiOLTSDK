@@ -20,7 +20,7 @@ type UnmanagedONT struct {
 	OntAutofindTime    string `json:"auto_find_time"`
 }
 
-func (o *UnmanagedONT) GetFrameSlotPort() (*int, *int, *int) {
+func (o *UnmanagedONT) GetFrameSlotPort() (int, int, int, error) {
 	return getFrameSlotPortFromFSP(o.FSP)
 }
 
@@ -157,7 +157,7 @@ type GeneralInfo struct {
 	OnlineDuration   string `json:"online_duration"`
 }
 
-func (o *GeneralInfo) GetFrameSlotPort() (*int, *int, *int) {
+func (o *GeneralInfo) GetFrameSlotPort() (int, int, int, error) {
 	return getFrameSlotPortFromFSP(o.FSP)
 }
 
@@ -227,13 +227,13 @@ func ParseServicePorts(output string) ([]ServicePort, error) {
 	return results, nil
 }
 
-func getFrameSlotPortFromFSP(fsp string) (*int, *int, *int) {
+func getFrameSlotPortFromFSP(fsp string) (int, int, int, error) {
 	parts := strings.Split(fsp, "/")
 	frame, err := strconv.Atoi(parts[0])
 	slot, err := strconv.Atoi(parts[1])
 	port, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return nil, nil, nil
+		return 0, 0, 0, err
 	}
-	return &frame, &slot, &port
+	return frame, slot, port, nil
 }
