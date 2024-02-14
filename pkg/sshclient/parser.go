@@ -171,6 +171,18 @@ func ParseGeneralInfoBySn(output string) (*GeneralInfo, error) {
 		return nil, InvalidSerialNumberError{}
 	}
 
+	descriptionStart := 21
+	descriptionEnd := 22
+	description := ""
+
+	for i := descriptionStart; i < len(lines); i++ {
+		if strings.HasPrefix(strings.TrimSpace(lines[i]), "Last down cause") {
+			descriptionEnd = i
+			break
+		}
+		description += strings.TrimPrefix(strings.TrimSpace(lines[i]), "Description             : ")
+	}
+
 	ont := &GeneralInfo{
 		FSP:              strings.TrimPrefix(strings.TrimSpace(lines[2]), "F/S/P                   : "),
 		ID:               strings.TrimPrefix(strings.TrimSpace(lines[3]), "ONT-ID                  : "),
@@ -187,11 +199,11 @@ func ParseGeneralInfoBySn(output string) (*GeneralInfo, error) {
 		ManagementMode:   strings.TrimPrefix(strings.TrimSpace(lines[17]), "Management mode         : "),
 		SoftwareWorkMode: strings.TrimPrefix(strings.TrimSpace(lines[18]), "Software work mode      : "),
 		IsolationState:   strings.TrimPrefix(strings.TrimSpace(lines[19]), "Isolation state         : "),
-		Description:      strings.TrimPrefix(strings.TrimSpace(lines[21]), "Description             : "),
-		LatDownCause:     strings.TrimPrefix(strings.TrimSpace(lines[22]), "Last down cause         : "),
-		LastUpTime:       strings.TrimPrefix(strings.TrimSpace(lines[23]), "Last up time            : "),
-		LastDownTime:     strings.TrimPrefix(strings.TrimSpace(lines[24]), "Last down time          : "),
-		OnlineDuration:   strings.TrimPrefix(strings.TrimSpace(lines[26]), "ONT online duration     : "),
+		Description:      description,
+		LatDownCause:     strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd]), "Last down cause         : "),
+		LastUpTime:       strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+1]), "Last up time            : "),
+		LastDownTime:     strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+2]), "Last down time          : "),
+		OnlineDuration:   strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+4]), "ONT online duration     : "),
 	}
 
 	return ont, nil
