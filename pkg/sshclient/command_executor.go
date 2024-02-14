@@ -239,53 +239,6 @@ func (c *CommandExecutor) AddServicePort(vlan, frame, slot, port, ontID int) err
 	return nil
 }
 
-func (c *CommandExecutor) GetOpticalNetworkTerminal(frame, slot, port, ontID int) (*ONT, error) {
-	if c.ExecutorContext.Level != 2 {
-		return nil, fmt.Errorf("not in config mode")
-	}
-
-	output, err := c.ExecuteCommand(fmt.Sprintf("display current-configuration ont %d/%d/%d %d", frame, slot, port, ontID), "MA5683T(config)#")
-	if err != nil {
-		return nil, fmt.Errorf("failed to run command: %v", err)
-	}
-
-	err = c.checkOutputFailure(output)
-	if err != nil {
-		return nil, err
-	}
-
-	ont := &ONT{
-		Frame: frame,
-		Slot:  slot,
-		Port:  port,
-		ID:    ontID,
-	}
-
-	if match := regexp.MustCompile(`sn-auth "(.*?)"`).FindStringSubmatch(output); len(match) > 1 {
-		ont.SerialNumber = match[1]
-	}
-
-	if match := regexp.MustCompile(`desc "(.*?)"`).FindStringSubmatch(output); len(match) > 1 {
-		ont.Description = match[1]
-	}
-
-	if match := regexp.MustCompile(`service-port (\d+)`).FindStringSubmatch(output); len(match) > 1 {
-		ont.ServicePort, err = strconv.Atoi(match[1])
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse service port: %v", err)
-		}
-	}
-
-	if match := regexp.MustCompile(`vlan (\d+) gpon`).FindStringSubmatch(output); len(match) > 1 {
-		ont.VlanID, err = strconv.Atoi(match[1])
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse vlan id: %v", err)
-		}
-	}
-
-	return ont, nil
-}
-
 func (c *CommandExecutor) UndoServicePort(id int) error {
 	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")
