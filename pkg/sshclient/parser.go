@@ -232,6 +232,9 @@ func ParseServicePorts(output string) ([]ServicePort, error) {
 	results := make([]ServicePort, 0)
 
 	lines := strings.Split(output, "\n")
+	if strings.Contains(lines[5], "Failure: No service virtual port can be operated") {
+		return results, nil
+	}
 
 	err := parseLinesFailure(lines)
 	if err != nil {
