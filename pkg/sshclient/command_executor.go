@@ -113,7 +113,7 @@ func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OpticalInfo, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
-	return ParseOpticalInfo(output), nil
+	return ParseOpticalInfo(output)
 }
 
 func (c *CommandExecutor) GetGeneralInfoBySn(sn string) (*GeneralInfo, error) {
@@ -167,7 +167,8 @@ func (c *CommandExecutor) AddOpticalNetworkTerminal(port int, sn string, descrip
 		return 0, fmt.Errorf("failed to run command: %v", err)
 	}
 
-	err = c.checkOutputFailure(output)
+	lines := strings.Split(output, "\n")
+	err = parseLinesFailure(lines)
 	if err != nil {
 		return 0, err
 	}
@@ -213,7 +214,8 @@ func (c *CommandExecutor) AddNativeVirtualLan(port, ontID int) error {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	err = c.checkOutputFailure(output)
+	lines := strings.Split(output, "\n")
+	err = parseLinesFailure(lines)
 	if err != nil {
 		return err
 	}
@@ -231,7 +233,8 @@ func (c *CommandExecutor) AddServicePort(vlan, frame, slot, port, ontID int) err
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	err = c.checkOutputFailure(output)
+	lines := strings.Split(output, "\n")
+	err = parseLinesFailure(lines)
 	if err != nil {
 		return err
 	}
@@ -249,7 +252,8 @@ func (c *CommandExecutor) UndoServicePort(id int) error {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	err = c.checkOutputFailure(output)
+	lines := strings.Split(output, "\n")
+	err = parseLinesFailure(lines)
 	if err != nil {
 		return err
 	}
@@ -356,17 +360,5 @@ func (c *CommandExecutor) config() error {
 		return fmt.Errorf("failed to run command config: %v", err)
 	}
 	c.ExecutorContext.Level = 2
-	return nil
-}
-
-func (c *CommandExecutor) checkOutputFailure(output string) error {
-	if strings.Contains(output, "Failure:") {
-		lines := strings.Split(output, "\n")
-		for _, line := range lines {
-			if strings.Contains(line, "Failure:") {
-				return fmt.Errorf(line)
-			}
-		}
-	}
 	return nil
 }

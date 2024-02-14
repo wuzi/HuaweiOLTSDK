@@ -1,6 +1,7 @@
 package sshclient
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -96,8 +97,13 @@ type OpticalInfo struct {
 	CATVRxPowerAlarmThreshold      string `json:"catv_rx_power_alarm_threshold"`
 }
 
-func ParseOpticalInfo(output string) *OpticalInfo {
+func ParseOpticalInfo(output string) (*OpticalInfo, error) {
 	lines := strings.Split(output, "\n")
+
+	err := parseLinesFailure(lines)
+	if err != nil {
+		return nil, err
+	}
 
 	details := &OpticalInfo{
 		ONUNNIPortID:                   strings.TrimPrefix(strings.TrimSpace(lines[2]), "ONU NNI port ID                        : "),
@@ -131,7 +137,7 @@ func ParseOpticalInfo(output string) *OpticalInfo {
 		CATVRxPowerAlarmThreshold:      strings.TrimPrefix(strings.TrimSpace(lines[30]), "CATV Rx power alarm threshold(dBm)     : "),
 	}
 
-	return details
+	return details, nil
 }
 
 type GeneralInfo struct {
@@ -227,6 +233,11 @@ func ParseServicePorts(output string) ([]ServicePort, error) {
 
 	lines := strings.Split(output, "\n")
 
+	err := parseLinesFailure(lines)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 
@@ -256,4 +267,21 @@ func getFrameSlotPortFromFSP(fsp string) (int, int, int, error) {
 		return 0, 0, 0, err
 	}
 	return frame, slot, port, nil
+}
+
+func parseFailure(line string) error {
+	if strings.Contains(line, "Failure: ") {
+		return fmt.Errorf(strings.TrimPrefix(strings.TrimSpace(line), "Failure: "))
+	}
+	return nil
+}
+
+func parseLinesFailure(lines []string) error {
+	for _, line := range lines {
+		err := parseFailure(line)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
