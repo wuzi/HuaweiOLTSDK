@@ -135,26 +135,30 @@ func ParseOpticalInfo(output string) *OpticalInfo {
 }
 
 type GeneralInfo struct {
-	FSP              string `json:"fsp"`
-	ID               string `json:"id"`
-	ControlFlag      string `json:"control_flag"`
-	RunState         string `json:"run_state"`
-	ConfigState      string `json:"config_state"`
-	MatchState       string `json:"match_state"`
-	DBAType          string `json:"dba_type"`
-	Distance         string `json:"distance"`
-	LastDistance     string `json:"last_distance"`
-	BatteryState     string `json:"battery_state"`
-	AuthenticType    string `json:"authentic_type"`
-	SN               string `json:"sn"`
-	ManagementMode   string `json:"management_mode"`
-	SoftwareWorkMode string `json:"software_work_mode"`
-	IsolationState   string `json:"isolation_state"`
-	Description      string `json:"description"`
-	LatDownCause     string `json:"last_down_cause"`
-	LastUpTime       string `json:"last_up_time"`
-	LastDownTime     string `json:"last_down_time"`
-	OnlineDuration   string `json:"online_duration"`
+	FSP               string `json:"fsp"`
+	ID                string `json:"id"`
+	ControlFlag       string `json:"control_flag"`
+	RunState          string `json:"run_state"`
+	ConfigState       string `json:"config_state"`
+	MatchState        string `json:"match_state"`
+	DBAType           string `json:"dba_type"`
+	Distance          string `json:"distance"`
+	LastDistance      string `json:"last_distance"`
+	BatteryState      string `json:"battery_state"`
+	MemoryOccupation  string `json:"memory_occupation"`
+	CPUOccupation     string `json:"cpu_occupation"`
+	Temperature       string `json:"temperature"`
+	AuthenticType     string `json:"authentic_type"`
+	SN                string `json:"sn"`
+	ManagementMode    string `json:"management_mode"`
+	SoftwareWorkMode  string `json:"software_work_mode"`
+	IsolationState    string `json:"isolation_state"`
+	Description       string `json:"description"`
+	LatDownCause      string `json:"last_down_cause"`
+	LastUpTime        string `json:"last_up_time"`
+	LastDownTime      string `json:"last_down_time"`
+	LastDyingGaspTime string `json:"last_dying_gasp_time"`
+	OnlineDuration    string `json:"online_duration"`
 }
 
 func (o *GeneralInfo) GetFrameSlotPort() (int, int, int, error) {
@@ -184,26 +188,30 @@ func ParseGeneralInfoBySn(output string) (*GeneralInfo, error) {
 	}
 
 	ont := &GeneralInfo{
-		FSP:              strings.TrimPrefix(strings.TrimSpace(lines[2]), "F/S/P                   : "),
-		ID:               strings.TrimPrefix(strings.TrimSpace(lines[3]), "ONT-ID                  : "),
-		ControlFlag:      strings.TrimPrefix(strings.TrimSpace(lines[4]), "Control flag            : "),
-		RunState:         strings.TrimPrefix(strings.TrimSpace(lines[5]), "Run state               : "),
-		ConfigState:      strings.TrimPrefix(strings.TrimSpace(lines[6]), "Config state            : "),
-		MatchState:       strings.TrimPrefix(strings.TrimSpace(lines[7]), "Match state             : "),
-		DBAType:          strings.TrimPrefix(strings.TrimSpace(lines[8]), "DBA type                : "),
-		Distance:         strings.TrimPrefix(strings.TrimSpace(lines[9]), "ONT distance(m)         : "),
-		LastDistance:     strings.TrimPrefix(strings.TrimSpace(lines[10]), "ONT last distance(m)    : "),
-		BatteryState:     strings.TrimPrefix(strings.TrimSpace(lines[11]), "ONT battery state       : "),
-		AuthenticType:    strings.TrimPrefix(strings.TrimSpace(lines[15]), "Authentic type          : "),
-		SN:               strings.TrimPrefix(strings.TrimSpace(lines[16]), "SN                      : "),
-		ManagementMode:   strings.TrimPrefix(strings.TrimSpace(lines[17]), "Management mode         : "),
-		SoftwareWorkMode: strings.TrimPrefix(strings.TrimSpace(lines[18]), "Software work mode      : "),
-		IsolationState:   strings.TrimPrefix(strings.TrimSpace(lines[19]), "Isolation state         : "),
-		Description:      description,
-		LatDownCause:     strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd]), "Last down cause         : "),
-		LastUpTime:       strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+1]), "Last up time            : "),
-		LastDownTime:     strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+2]), "Last down time          : "),
-		OnlineDuration:   strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+4]), "ONT online duration     : "),
+		FSP:               strings.TrimPrefix(strings.TrimSpace(lines[2]), "F/S/P                   : "),
+		ID:                strings.TrimPrefix(strings.TrimSpace(lines[3]), "ONT-ID                  : "),
+		ControlFlag:       strings.TrimPrefix(strings.TrimSpace(lines[4]), "Control flag            : "),
+		RunState:          strings.TrimPrefix(strings.TrimSpace(lines[5]), "Run state               : "),
+		ConfigState:       strings.TrimPrefix(strings.TrimSpace(lines[6]), "Config state            : "),
+		MatchState:        strings.TrimPrefix(strings.TrimSpace(lines[7]), "Match state             : "),
+		DBAType:           strings.TrimPrefix(strings.TrimSpace(lines[8]), "DBA type                : "),
+		Distance:          strings.TrimPrefix(strings.TrimSpace(lines[9]), "ONT distance(m)         : "),
+		LastDistance:      strings.TrimPrefix(strings.TrimSpace(lines[10]), "ONT last distance(m)    : "),
+		BatteryState:      strings.TrimPrefix(strings.TrimSpace(lines[11]), "ONT battery state       : "),
+		MemoryOccupation:  strings.TrimPrefix(strings.TrimSpace(lines[12]), "Memory occupation       : "),
+		CPUOccupation:     strings.TrimPrefix(strings.TrimSpace(lines[13]), "CPU occupation          : "),
+		Temperature:       strings.TrimPrefix(strings.TrimSpace(lines[14]), "Temperature             : "),
+		AuthenticType:     strings.TrimPrefix(strings.TrimSpace(lines[15]), "Authentic type          : "),
+		SN:                strings.TrimPrefix(strings.TrimSpace(lines[16]), "SN                      : "),
+		ManagementMode:    strings.TrimPrefix(strings.TrimSpace(lines[17]), "Management mode         : "),
+		SoftwareWorkMode:  strings.TrimPrefix(strings.TrimSpace(lines[18]), "Software work mode      : "),
+		IsolationState:    strings.TrimPrefix(strings.TrimSpace(lines[19]), "Isolation state         : "),
+		Description:       description,
+		LatDownCause:      strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd]), "Last down cause         : "),
+		LastUpTime:        strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+1]), "Last up time            : "),
+		LastDownTime:      strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+2]), "Last down time          : "),
+		LastDyingGaspTime: strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+3]), "Last dying gasp time    : "),
+		OnlineDuration:    strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+4]), "ONT online duration     : "),
 	}
 
 	return ont, nil
