@@ -244,17 +244,18 @@ func ParseServicePorts(output string) ([]ServicePort, error) {
 	results := make([]ServicePort, 0)
 
 	lines := strings.Split(output, "\n")
-	if strings.Contains(lines[5], "Failure: No service virtual port can be operated") {
-		return results, nil
-	}
-
-	err := parseLinesFailure(lines)
-	if err != nil {
-		return nil, err
-	}
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
+
+		if strings.Contains(line, "Failure: No service virtual port can be operated") {
+			return results, nil
+		}
+
+		err := parseFailure(line)
+		if err != nil {
+			return nil, err
+		}
 
 		if len(line) > 0 && line[0] >= '0' && line[0] <= '9' {
 			parts := strings.Fields(line)
