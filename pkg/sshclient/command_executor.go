@@ -204,12 +204,17 @@ func (c *CommandExecutor) DeleteOpticalNetworkTerminal(port int) error {
 	return nil
 }
 
-func (c *CommandExecutor) AddNativeVirtualLan(port, ontID int) error {
+func (c *CommandExecutor) AddNativeVirtualLan(port, ontID int, mode string) error {
 	if c.ExecutorContext.Level != 3 {
 		return fmt.Errorf("not in interface gpon mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("ont port native-vlan %d %d eth 1 vlan 20 priority 0", port, ontID), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	ontType := "eth 1"
+	if mode == "router" {
+		ontType = "iphost"
+	}
+
+	output, err := c.ExecuteCommand(fmt.Sprintf("ont port native-vlan %d %d %s vlan 20 priority 0", port, ontID, ontType), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
