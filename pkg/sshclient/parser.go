@@ -174,6 +174,8 @@ func (o *GeneralInfo) GetFrameSlotPort() (int, int, int, error) {
 func ParseGeneralInfoBySn(output string) (*GeneralInfo, error) {
 	lines := strings.Split(output, "\n")
 
+	ont := &GeneralInfo{}
+
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
 		if trimmedLine == "The required ONT does not exist" {
@@ -182,45 +184,40 @@ func ParseGeneralInfoBySn(output string) (*GeneralInfo, error) {
 		if strings.Contains(trimmedLine, "Parameter error") {
 			return nil, InvalidSerialNumberError{}
 		}
-	}
 
-	descriptionStart := 21
-	descriptionEnd := 22
-	description := ""
-
-	for i := descriptionStart; i < len(lines); i++ {
-		if strings.HasPrefix(strings.TrimSpace(lines[i]), "Last down cause") {
-			descriptionEnd = i
-			break
+		fieldMap := map[string]*string{
+			"F/S/P                   : ": &ont.FSP,
+			"ONT-ID                  : ": &ont.ID,
+			"Control flag            : ": &ont.ControlFlag,
+			"Run state               : ": &ont.RunState,
+			"Config state            : ": &ont.ConfigState,
+			"Match state             : ": &ont.MatchState,
+			"DBA type                : ": &ont.DBAType,
+			"ONT distance(m)         : ": &ont.Distance,
+			"ONT last distance(m)    : ": &ont.LastDistance,
+			"ONT battery state       : ": &ont.BatteryState,
+			"Memory occupation       : ": &ont.MemoryOccupation,
+			"CPU occupation          : ": &ont.CPUOccupation,
+			"Temperature             : ": &ont.Temperature,
+			"Authentic type          : ": &ont.AuthenticType,
+			"SN                      : ": &ont.SN,
+			"Management mode         : ": &ont.ManagementMode,
+			"Software work mode      : ": &ont.SoftwareWorkMode,
+			"Isolation state         : ": &ont.IsolationState,
+			"Description             : ": &ont.Description,
+			"Last down cause         : ": &ont.LatDownCause,
+			"Last up time            : ": &ont.LastUpTime,
+			"Last down time          : ": &ont.LastDownTime,
+			"Last dying gasp time    : ": &ont.LastDyingGaspTime,
+			"ONT online duration     : ": &ont.OnlineDuration,
 		}
-		description += strings.TrimPrefix(strings.TrimSpace(lines[i]), "Description             : ")
-	}
 
-	ont := &GeneralInfo{
-		FSP:               strings.TrimPrefix(strings.TrimSpace(lines[2]), "F/S/P                   : "),
-		ID:                strings.TrimPrefix(strings.TrimSpace(lines[3]), "ONT-ID                  : "),
-		ControlFlag:       strings.TrimPrefix(strings.TrimSpace(lines[4]), "Control flag            : "),
-		RunState:          strings.TrimPrefix(strings.TrimSpace(lines[5]), "Run state               : "),
-		ConfigState:       strings.TrimPrefix(strings.TrimSpace(lines[6]), "Config state            : "),
-		MatchState:        strings.TrimPrefix(strings.TrimSpace(lines[7]), "Match state             : "),
-		DBAType:           strings.TrimPrefix(strings.TrimSpace(lines[8]), "DBA type                : "),
-		Distance:          strings.TrimPrefix(strings.TrimSpace(lines[9]), "ONT distance(m)         : "),
-		LastDistance:      strings.TrimPrefix(strings.TrimSpace(lines[10]), "ONT last distance(m)    : "),
-		BatteryState:      strings.TrimPrefix(strings.TrimSpace(lines[11]), "ONT battery state       : "),
-		MemoryOccupation:  strings.TrimPrefix(strings.TrimSpace(lines[12]), "Memory occupation       : "),
-		CPUOccupation:     strings.TrimPrefix(strings.TrimSpace(lines[13]), "CPU occupation          : "),
-		Temperature:       strings.TrimPrefix(strings.TrimSpace(lines[14]), "Temperature             : "),
-		AuthenticType:     strings.TrimPrefix(strings.TrimSpace(lines[15]), "Authentic type          : "),
-		SN:                strings.TrimPrefix(strings.TrimSpace(lines[16]), "SN                      : "),
-		ManagementMode:    strings.TrimPrefix(strings.TrimSpace(lines[17]), "Management mode         : "),
-		SoftwareWorkMode:  strings.TrimPrefix(strings.TrimSpace(lines[18]), "Software work mode      : "),
-		IsolationState:    strings.TrimPrefix(strings.TrimSpace(lines[19]), "Isolation state         : "),
-		Description:       description,
-		LatDownCause:      strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd]), "Last down cause         : "),
-		LastUpTime:        strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+1]), "Last up time            : "),
-		LastDownTime:      strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+2]), "Last down time          : "),
-		LastDyingGaspTime: strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+3]), "Last dying gasp time    : "),
-		OnlineDuration:    strings.TrimPrefix(strings.TrimSpace(lines[descriptionEnd+4]), "ONT online duration     : "),
+		for prefix, field := range fieldMap {
+			if strings.HasPrefix(trimmedLine, prefix) {
+				*field = strings.TrimPrefix(trimmedLine, prefix)
+				break
+			}
+		}
 	}
 
 	return ont, nil
