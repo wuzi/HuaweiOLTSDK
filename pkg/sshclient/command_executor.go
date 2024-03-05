@@ -98,7 +98,7 @@ func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]UnmanagedONT,
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand("display ont autofind all\n", "(config)#")
+	output, err := c.ExecuteCommand("display ont autofind all", "(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -109,7 +109,7 @@ func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OpticalInfo, error) 
 	if c.ExecutorContext.Level != 3 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display ont optical-info %d %d\n", port, ontID), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont optical-info %d %d", port, ontID), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -120,7 +120,7 @@ func (c *CommandExecutor) GetGeneralInfoBySn(sn string) (*GeneralInfo, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s\n", strings.Split(sn, " ")[0]), "(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s", strings.Split(sn, " ")[0]), "(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -131,7 +131,7 @@ func (c *CommandExecutor) GetServicePorts(frame, slot, port, ontID int) ([]Servi
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display service-port port %d/%d/%d ont %d\n", frame, slot, port, ontID), "(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("display service-port port %d/%d/%d ont %d", frame, slot, port, ontID), "(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -320,7 +320,7 @@ func (c *CommandExecutor) readOutputUntilPrompt(prompt string) (string, error) {
 		buffer := output[:n]
 		text := string(buffer)
 
-		if strings.Contains(text, "---- More ( Press 'Q' to break ) ----") {
+		if strings.Contains(text, "---- More ( Press 'Q' to break ) ----") || strings.Contains(text, " }:") {
 			_, err := c.Stdin.Write([]byte("\n"))
 			if err != nil {
 				return "", err
