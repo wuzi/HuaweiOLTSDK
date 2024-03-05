@@ -69,7 +69,7 @@ func NewCommandExecutor(connManager *ConnectionManager, options CommandExecutorO
 }
 
 func (c *CommandExecutor) ExecuteCommand(command, prompt string) (string, error) {
-	_, err := c.Stdin.Write([]byte(command + "\n"))
+	_, err := c.Stdin.Write([]byte(command + "\n" + "\n"))
 	if err != nil {
 		return "", err
 	}
