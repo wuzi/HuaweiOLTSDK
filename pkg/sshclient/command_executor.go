@@ -50,7 +50,7 @@ func NewCommandExecutor(connManager *ConnectionManager, options CommandExecutorO
 		ConnectionManager: connManager,
 	}
 
-	_, err = commExecutor.readOutputUntilPrompt("MA5683T>")
+	_, err = commExecutor.readOutputUntilPrompt(">")
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]UnmanagedONT,
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand("display ont autofind all", "MA5683T(config)#")
+	output, err := c.ExecuteCommand("display ont autofind all", "(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -109,7 +109,7 @@ func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OpticalInfo, error) 
 	if c.ExecutorContext.Level != 3 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display ont optical-info %d %d", port, ontID), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont optical-info %d %d", port, ontID), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -120,7 +120,7 @@ func (c *CommandExecutor) GetGeneralInfoBySn(sn string) (*GeneralInfo, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s", strings.Split(sn, " ")[0]), "MA5683T(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s", strings.Split(sn, " ")[0]), "(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -131,7 +131,7 @@ func (c *CommandExecutor) GetServicePorts(frame, slot, port, ontID int) ([]Servi
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display service-port port %d/%d/%d ont %d\n", frame, slot, port, ontID), "MA5683T(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("display service-port port %d/%d/%d ont %d\n", frame, slot, port, ontID), "(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -142,7 +142,7 @@ func (c *CommandExecutor) EnterInterfaceGPONMode(frame int, slot int) error {
 	if c.ExecutorContext.Level != 2 {
 		return fmt.Errorf("not in config mode")
 	}
-	_, err := c.ExecuteCommand(fmt.Sprintf("interface gpon %d/%d", frame, slot), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", frame, slot))
+	_, err := c.ExecuteCommand(fmt.Sprintf("interface gpon %d/%d", frame, slot), fmt.Sprintf("(config-if-gpon-%d/%d)#", frame, slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -161,7 +161,7 @@ func (c *CommandExecutor) AddOpticalNetworkTerminal(port int, sn string, descrip
 		port,
 		strings.Split(sn, " ")[0],
 		description,
-	), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 
 	if err != nil {
 		return 0, fmt.Errorf("failed to run command: %v", err)
@@ -197,7 +197,7 @@ func (c *CommandExecutor) DeleteOpticalNetworkTerminal(port int) error {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	_, err = c.ExecuteCommand("y", fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	_, err = c.ExecuteCommand("y", fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -209,7 +209,7 @@ func (c *CommandExecutor) AddNativeVirtualLan(port, ontID int) error {
 		return fmt.Errorf("not in interface gpon mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("ont port native-vlan %d %d eth 1 vlan 20 priority 0", port, ontID), fmt.Sprintf("MA5683T(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	output, err := c.ExecuteCommand(fmt.Sprintf("ont port native-vlan %d %d eth 1 vlan 20 priority 0", port, ontID), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -228,7 +228,7 @@ func (c *CommandExecutor) AddServicePort(vlan, frame, slot, port, ontID int) err
 		return fmt.Errorf("not in config mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("service-port vlan %d gpon %d/%d/%d ont %d gemport 20 multi-service user-vlan 20 tag-transform translate inbound traffic-table index 10 outbound traffic-table index 10", vlan, frame, slot, port, ontID), "MA5683T(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("service-port vlan %d gpon %d/%d/%d ont %d gemport 20 multi-service user-vlan 20 tag-transform translate inbound traffic-table index 10 outbound traffic-table index 10", vlan, frame, slot, port, ontID), "(config)#")
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -247,7 +247,7 @@ func (c *CommandExecutor) UndoServicePort(id int) error {
 		return fmt.Errorf("not in config mode")
 	}
 
-	output, err := c.ExecuteCommand(fmt.Sprintf("undo service-port %d", id), "MA5683T(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("undo service-port %d", id), "(config)#")
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
@@ -265,7 +265,7 @@ func (c *CommandExecutor) quit(exit bool) error {
 	var err error
 
 	if c.ExecutorContext.Level >= 3 {
-		_, err = c.ExecuteCommand("quit", "MA5683T(config)#")
+		_, err = c.ExecuteCommand("quit", "(config)#")
 		if err != nil {
 			return fmt.Errorf("failed to run command: %v", err)
 		}
@@ -276,7 +276,7 @@ func (c *CommandExecutor) quit(exit bool) error {
 	}
 
 	if c.ExecutorContext.Level >= 2 {
-		_, err = c.ExecuteCommand("quit", "MA5683T#")
+		_, err = c.ExecuteCommand("quit", "#")
 		if err != nil {
 			return fmt.Errorf("failed to run command: %v", err)
 		}
@@ -343,7 +343,7 @@ func (c *CommandExecutor) enable() error {
 	if c.ExecutorContext.Level != 0 {
 		return fmt.Errorf("not in root mode")
 	}
-	_, err := c.ExecuteCommand("enable", "MA5683T#")
+	_, err := c.ExecuteCommand("enable", "#")
 	if err != nil {
 		return fmt.Errorf("failed to run command enable: %v", err)
 	}
@@ -355,7 +355,7 @@ func (c *CommandExecutor) config() error {
 	if c.ExecutorContext.Level != 1 {
 		return fmt.Errorf("not in enable mode")
 	}
-	_, err := c.ExecuteCommand("config", "MA5683T(config)#")
+	_, err := c.ExecuteCommand("config", "(config)#")
 	if err != nil {
 		return fmt.Errorf("failed to run command config: %v", err)
 	}
