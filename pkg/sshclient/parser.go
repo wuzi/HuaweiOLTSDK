@@ -105,36 +105,48 @@ func ParseOpticalInfo(output string) (*OpticalInfo, error) {
 		return nil, err
 	}
 
-	details := &OpticalInfo{
-		ONUNNIPortID:                   strings.TrimPrefix(strings.TrimSpace(lines[2]), "ONU NNI port ID                        : "),
-		ModuleType:                     strings.TrimPrefix(strings.TrimSpace(lines[3]), "Module type                            : "),
-		ModuleSubType:                  strings.TrimPrefix(strings.TrimSpace(lines[4]), "Module sub-type                        : "),
-		UsedType:                       strings.TrimPrefix(strings.TrimSpace(lines[5]), "Used type                              : "),
-		EncapsulationType:              strings.TrimPrefix(strings.TrimSpace(lines[6]), "Encapsulation Type                     : "),
-		OpticalPowerPrecision:          strings.TrimPrefix(strings.TrimSpace(lines[7]), "Optical power precision(dBm)           : "),
-		VendorName:                     strings.TrimPrefix(strings.TrimSpace(lines[8]), "Vendor name                            : "),
-		VendorRev:                      strings.TrimPrefix(strings.TrimSpace(lines[9]), "Vendor rev                             : "),
-		VendorPN:                       strings.TrimPrefix(strings.TrimSpace(lines[10]), "Vendor PN                              : "),
-		VendorSN:                       strings.TrimPrefix(strings.TrimSpace(lines[11]), "Vendor SN                              : "),
-		DateCode:                       strings.TrimPrefix(strings.TrimSpace(lines[12]), "Date Code                              : "),
-		RxOpticalPower:                 strings.TrimPrefix(strings.TrimSpace(lines[13]), "Rx optical power(dBm)                  : "),
-		RxPowerCurrentWarningThreshold: strings.TrimPrefix(strings.TrimSpace(lines[14]), "Rx power current warning threshold(dBm): "),
-		RxPowerCurrentAlarmThreshold:   strings.TrimPrefix(strings.TrimSpace(lines[15]), "Rx power current alarm threshold(dBm)  : "),
-		TxOpticalPower:                 strings.TrimPrefix(strings.TrimSpace(lines[16]), "Tx optical power(dBm)                  : "),
-		TxPowerCurrentWarningThreshold: strings.TrimPrefix(strings.TrimSpace(lines[17]), "Tx power current warning threshold(dBm): "),
-		TxPowerCurrentAlarmThreshold:   strings.TrimPrefix(strings.TrimSpace(lines[18]), "Tx power current alarm threshold(dBm)  : "),
-		LaserBiasCurrent:               strings.TrimPrefix(strings.TrimSpace(lines[19]), "Laser bias current(mA)                 : "),
-		TxBiasCurrentWarningThreshold:  strings.TrimPrefix(strings.TrimSpace(lines[20]), "Tx bias current warning threshold(mA)  : "),
-		TxBiasCurrentAlarmThreshold:    strings.TrimPrefix(strings.TrimSpace(lines[21]), "Tx bias current alarm threshold(mA)    : "),
-		Temperature:                    strings.TrimPrefix(strings.TrimSpace(lines[22]), "Temperature(C)                         : "),
-		TemperatureWarningThreshold:    strings.TrimPrefix(strings.TrimSpace(lines[23]), "Temperature warning threshold(C)       : "),
-		TemperatureAlarmThreshold:      strings.TrimPrefix(strings.TrimSpace(lines[24]), "Temperature alarm threshold(C)         : "),
-		Voltage:                        strings.TrimPrefix(strings.TrimSpace(lines[25]), "Voltage(V)                             : "),
-		SupplyVoltageWarningThreshold:  strings.TrimPrefix(strings.TrimSpace(lines[26]), "Supply voltage warning threshold(V)    : "),
-		SupplyVoltageAlarmThreshold:    strings.TrimPrefix(strings.TrimSpace(lines[27]), "Supply voltage alarm threshold(V)      : "),
-		OLTRxONTOpticalPower:           strings.TrimPrefix(strings.TrimSpace(lines[28]), "OLT Rx ONT optical power(dBm)          : "),
-		CATVRxOpticalPower:             strings.TrimPrefix(strings.TrimSpace(lines[29]), "CATV Rx optical power(dBm)             : "),
-		CATVRxPowerAlarmThreshold:      strings.TrimPrefix(strings.TrimSpace(lines[30]), "CATV Rx power alarm threshold(dBm)     : "),
+	details := &OpticalInfo{}
+
+	fieldMap := map[string]*string{
+		"ONU NNI port ID                        : ": &details.ONUNNIPortID,
+		"Module type                            : ": &details.ModuleType,
+		"Module sub-type                        : ": &details.ModuleSubType,
+		"Used type                              : ": &details.UsedType,
+		"Encapsulation Type                     : ": &details.EncapsulationType,
+		"Optical power precision(dBm)           : ": &details.OpticalPowerPrecision,
+		"Vendor name                            : ": &details.VendorName,
+		"Vendor rev                             : ": &details.VendorRev,
+		"Vendor PN                              : ": &details.VendorPN,
+		"Vendor SN                              : ": &details.VendorSN,
+		"Date Code                              : ": &details.DateCode,
+		"Rx optical power(dBm)                  : ": &details.RxOpticalPower,
+		"Rx power current warning threshold(dBm): ": &details.RxPowerCurrentWarningThreshold,
+		"Rx power current alarm threshold(dBm)  : ": &details.RxPowerCurrentAlarmThreshold,
+		"Tx optical power(dBm)                  : ": &details.TxOpticalPower,
+		"Tx power current warning threshold(dBm): ": &details.TxPowerCurrentWarningThreshold,
+		"Tx power current alarm threshold(dBm)  : ": &details.TxPowerCurrentAlarmThreshold,
+		"Laser bias current(mA)                 : ": &details.LaserBiasCurrent,
+		"Tx bias current warning threshold(mA)  : ": &details.TxBiasCurrentWarningThreshold,
+		"Tx bias current alarm threshold(mA)    : ": &details.TxBiasCurrentAlarmThreshold,
+		"Temperature(C)                         : ": &details.Temperature,
+		"Temperature warning threshold(C)       : ": &details.TemperatureWarningThreshold,
+		"Temperature alarm threshold(C)         : ": &details.TemperatureAlarmThreshold,
+		"Voltage(V)                             : ": &details.Voltage,
+		"Supply voltage warning threshold(V)    : ": &details.SupplyVoltageWarningThreshold,
+		"Supply voltage alarm threshold(V)      : ": &details.SupplyVoltageAlarmThreshold,
+		"OLT Rx ONT optical power(dBm)          : ": &details.OLTRxONTOpticalPower,
+		"CATV Rx optical power(dBm)             : ": &details.CATVRxOpticalPower,
+		"CATV Rx power alarm threshold(dBm)     : ": &details.CATVRxPowerAlarmThreshold,
+	}
+
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		for prefix, field := range fieldMap {
+			if strings.HasPrefix(trimmedLine, prefix) {
+				*field = strings.TrimPrefix(trimmedLine, prefix)
+				break
+			}
+		}
 	}
 
 	return details, nil
