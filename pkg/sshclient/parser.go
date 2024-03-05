@@ -2,6 +2,7 @@ package sshclient
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -244,30 +245,34 @@ type ServicePort struct {
 func ParseServicePorts(output string) ([]ServicePort, error) {
 	results := make([]ServicePort, 0)
 
+	if strings.Contains(output, "Failure: No service virtual port can be operated") {
+		return results, nil
+	}
+
 	lines := strings.Split(output, "\n")
-
 	for _, line := range lines {
-		line = strings.TrimSpace(line)
-
-		if strings.Contains(line, "Failure: No service virtual port can be operated") {
-			return results, nil
-		}
-
 		err := parseFailure(line)
 		if err != nil {
 			return nil, err
 		}
+	}
 
-		if len(line) > 0 && line[0] >= '0' && line[0] <= '9' {
-			parts := strings.Fields(line)
-			index, err := strconv.Atoi(parts[0])
+	re := regexp.MustCompile(`\s+(\d+)\s+(\d+)\s+\w+\s+\w+\s+\d+/\d+ /\d+\s+\d+\s+\d+\s+\w+\s+\w+\s+\d+\s+\d+\s+\w+`)
+
+	matches := re.FindAllStringSubmatch(output, -1)
+
+	for _, match := range matches {
+		if len(match) >= 3 {
+			index, err := strconv.Atoi(match[1])
 			if err != nil {
 				return nil, err
 			}
-			vlan, err := strconv.Atoi(parts[1])
+
+			vlan, err := strconv.Atoi(match[2])
 			if err != nil {
 				return nil, err
 			}
+
 			results = append(results, ServicePort{Index: index, Vlan: vlan})
 		}
 	}
