@@ -291,7 +291,7 @@ func (c *CommandExecutor) quit(exit bool) error {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	_, err = c.ExecuteCommand("y", "to log on")
+	_, err = c.ExecuteCommand("y\n", "to log on")
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
