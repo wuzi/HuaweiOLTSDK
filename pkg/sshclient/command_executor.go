@@ -109,7 +109,7 @@ func (c *CommandExecutor) GetOpticalInfo(port, ontID int) (*OpticalInfo, error) 
 	if c.ExecutorContext.Level != 3 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display ont optical-info %d %d", port, ontID), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont optical-info %d %d\n", port, ontID), fmt.Sprintf("(config-if-gpon-%d/%d)#", c.ExecutorContext.Frame, c.ExecutorContext.Slot))
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
