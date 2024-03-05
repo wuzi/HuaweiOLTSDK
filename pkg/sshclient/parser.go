@@ -100,11 +100,6 @@ type OpticalInfo struct {
 func ParseOpticalInfo(output string) (*OpticalInfo, error) {
 	lines := strings.Split(output, "\n")
 
-	err := parseLinesFailure(lines)
-	if err != nil {
-		return nil, err
-	}
-
 	details := &OpticalInfo{}
 
 	fieldMap := map[string]*string{
@@ -140,10 +135,16 @@ func ParseOpticalInfo(output string) (*OpticalInfo, error) {
 	}
 
 	for _, line := range lines {
-		trimmedLine := strings.TrimSpace(line)
+		line = strings.TrimSpace(line)
+
+		err := parseFailure(line)
+		if err != nil {
+			return nil, err
+		}
+
 		for prefix, field := range fieldMap {
-			if strings.HasPrefix(trimmedLine, prefix) {
-				*field = strings.TrimPrefix(trimmedLine, prefix)
+			if strings.HasPrefix(line, prefix) {
+				*field = strings.TrimPrefix(line, prefix)
 				break
 			}
 		}
@@ -288,16 +289,6 @@ func getFrameSlotPortFromFSP(fsp string) (int, int, int, error) {
 func parseFailure(line string) error {
 	if strings.Contains(line, "Failure: ") {
 		return fmt.Errorf(strings.TrimPrefix(strings.TrimSpace(line), "Failure: "))
-	}
-	return nil
-}
-
-func parseLinesFailure(lines []string) error {
-	for _, line := range lines {
-		err := parseFailure(line)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
