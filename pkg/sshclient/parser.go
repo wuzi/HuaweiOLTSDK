@@ -292,3 +292,13 @@ func parseFailure(line string) error {
 	}
 	return nil
 }
+
+func parseLinesFailure(lines []string) error {
+	for _, line := range lines {
+		err := parseFailure(line)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
