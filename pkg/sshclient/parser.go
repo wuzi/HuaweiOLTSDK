@@ -174,11 +174,14 @@ func (o *GeneralInfo) GetFrameSlotPort() (int, int, int, error) {
 func ParseGeneralInfoBySn(output string) (*GeneralInfo, error) {
 	lines := strings.Split(output, "\n")
 
-	if strings.TrimSpace(lines[1]) == "The required ONT does not exist" {
-		return nil, NotFoundError{}
-	}
-	if strings.Contains(strings.TrimSpace(lines[2]), "Parameter error") {
-		return nil, InvalidSerialNumberError{}
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		if trimmedLine == "The required ONT does not exist" {
+			return nil, NotFoundError{}
+		}
+		if strings.Contains(trimmedLine, "Parameter error") {
+			return nil, InvalidSerialNumberError{}
+		}
 	}
 
 	descriptionStart := 21
