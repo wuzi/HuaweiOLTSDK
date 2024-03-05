@@ -69,7 +69,7 @@ func NewCommandExecutor(connManager *ConnectionManager, options CommandExecutorO
 }
 
 func (c *CommandExecutor) ExecuteCommand(command, prompt string) (string, error) {
-	_, err := c.Stdin.Write([]byte(command + "\n" + "\n"))
+	_, err := c.Stdin.Write([]byte(command + "\n"))
 	if err != nil {
 		return "", err
 	}
@@ -98,7 +98,7 @@ func (c *CommandExecutor) GetUnmanagedOpticalNetworkTerminals() ([]UnmanagedONT,
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand("display ont autofind all", "(config)#")
+	output, err := c.ExecuteCommand("display ont autofind all\n", "(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
@@ -291,7 +291,7 @@ func (c *CommandExecutor) quit(exit bool) error {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
 
-	_, err = c.ExecuteCommand("y\n", "to log on")
+	_, err = c.ExecuteCommand("y", "to log on")
 	if err != nil {
 		return fmt.Errorf("failed to run command: %v", err)
 	}
