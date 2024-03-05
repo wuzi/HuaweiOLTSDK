@@ -120,7 +120,7 @@ func (c *CommandExecutor) GetGeneralInfoBySn(sn string) (*GeneralInfo, error) {
 	if c.ExecutorContext.Level != 2 {
 		return nil, fmt.Errorf("not in config mode")
 	}
-	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s", strings.Split(sn, " ")[0]), "(config)#")
+	output, err := c.ExecuteCommand(fmt.Sprintf("display ont info by-sn %s\n", strings.Split(sn, " ")[0]), "(config)#")
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command: %v", err)
 	}
