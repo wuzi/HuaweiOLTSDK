@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type UnmanagedONT struct {
@@ -228,6 +229,12 @@ func ParseGeneralInfoBySn(output string) (*GeneralInfo, error) {
 
 		for prefix, field := range fieldMap {
 			if strings.HasPrefix(trimmedLine, prefix) {
+				if strings.Contains(prefix, "Last up time") ||
+					strings.Contains(prefix, "Last down time") ||
+					strings.Contains(prefix, "Last dying gasp time") {
+					*field = parseDateTime(strings.TrimPrefix(trimmedLine, prefix))
+					break
+				}
 				*field = strings.TrimPrefix(trimmedLine, prefix)
 				break
 			}
@@ -306,4 +313,25 @@ func parseLinesFailure(lines []string) error {
 		}
 	}
 	return nil
+}
+
+func parseDateTime(dateTimeStr string) string {
+	layouts := []string{
+		"02/01/2006 15:04:05-07:00",
+		"2006-01-02 15:04:05-07:00",
+	}
+
+	var parsedTime time.Time
+	var err error
+	for _, layout := range layouts {
+		parsedTime, err = time.Parse(layout, dateTimeStr)
+		if err == nil {
+			break
+		}
+	}
+	if err != nil {
+		return dateTimeStr
+	}
+
+	return parsedTime.Format("2006-01-02 15:04:05-07:00")
 }
